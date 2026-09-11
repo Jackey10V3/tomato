@@ -12,6 +12,7 @@
  */
 import { computed, onMounted } from 'vue'
 import { useResponsive } from '@/composables/useResponsive'
+import { hideNativeTabBar } from '@/composables/useNativeTabBar'
 
 const props = defineProps<{ current: string }>()
 
@@ -24,17 +25,18 @@ const TABS = [
 const { isWide } = useResponsive()
 
 onMounted(() => {
-  // 每个 tab 页挂载时都调一次：hideTabBar 在 onLaunch 时机偶发不生效
-  try {
-    uni.hideTabBar({ animation: false })
-  } catch {
-    /* 平台不支持时保留原生栏，Dock 会与之重叠但不影响功能 */
-  }
+  // 双保险：tab 页本身已在 setup 调 useNativeTabBar()（onShow 是可靠时机），
+  // 这里组件挂载后再压一次，覆盖首帧偶发漏网
+  hideNativeTabBar()
 })
 
 function go(path: string) {
   if (path === props.current) return
-  uni.switchTab({ url: path })
+  uni.switchTab({
+    url: path,
+    // 切页后新页面的 onShow 会再压一次；这里在 success 里补一刀，防止原生栏闪现
+    success: () => hideNativeTabBar(),
+  })
 }
 
 /** 激活项的图标颜色交给 CSS（.di.on 里改 --ico），这里只负责结构 */

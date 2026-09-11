@@ -10,6 +10,7 @@ import { useResponsive } from '@/composables/useResponsive'
 import { useCountUp } from '@/composables/useCountUp'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
+import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import { themeStyle, posterBg, chartPalette, buildTodoColorMap } from '@/utils/theme'
 import { mondayKey, parseDateKey } from '@/utils/date'
 import PageError from '@/components/PageError.vue'
@@ -370,6 +371,7 @@ function shareReport() {
   })
 }
 
+useNativeTabBar()
 onShow(() => {
   taskStore.loadLocal()
   settings.applySideEffects()

@@ -10,6 +10,7 @@ import { useChrome } from '@/composables/usePageChrome'
 import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
+import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
@@ -132,6 +133,7 @@ function dataMenu() {
   })
 }
 
+useNativeTabBar()
 onShow(() => {
   taskStore.loadLocal()
   settings.applySideEffects()

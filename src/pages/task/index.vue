@@ -12,6 +12,7 @@ import { useChrome } from '@/composables/usePageChrome'
 import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
+import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, posterBg, todoPalette, buildTodoColorMap, colorGradient, hashStr, pickerPalette, normalizeHex } from '@/utils/theme'
@@ -326,6 +327,7 @@ onUnload(() => {
     tickTimer = null
   }
 })
+useNativeTabBar()
 onShow(() => {
   settings.applySideEffects()
   nowTick.value = Date.now()
