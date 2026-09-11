@@ -299,11 +299,23 @@ page {
 }
 
 /*
- * 两栏（.is-2col，窗口 ≥1000px）：
- * 把卡片按两列排布，用满平板的横向空间。
- * 子项宽度用 calc 算（两列 + 左右各 24rpx 外边距）；
- * 若某平台不支持 calc，会退化成两列紧贴，仍可正常使用。
+ * 平板观感：大屏上放大圆角与留白。
+ * 不做这一步的话，界面会像是"手机界面被拉宽"，而不是为平板设计的。
  */
+.is-wide .t-card,
+.is-wide .card {
+  border-radius: 36rpx;
+  padding: 32rpx;
+}
+.is-wide .t-card.tight { padding: 2rpx 32rpx; }
+.is-wide .t-hero { padding-bottom: 26rpx; }
+.is-wide .t-hero-title { font-size: 46rpx; }
+.is-wide .t-hero-sub { font-size: 24rpx; }
+.is-wide .t-section-title { font-size: 34rpx; }
+.is-wide .t-row { padding: 30rpx 0; }
+.is-wide .t-row-title { font-size: 32rpx; }
+.is-wide .t-row-desc { font-size: 24rpx; }
+
 /*
  * 两栏（.is-2col，窗口 ≥1000px）：
  * 把卡片按两列排布，用满平板的横向空间。
@@ -348,9 +360,25 @@ page {
  */
 .no-enter { animation: none !important; }
 
-/* 可点击元素的按压反馈 */
-.press { transition: transform 0.12s ease, opacity 0.12s ease; }
-.press:active { transform: scale(0.975); opacity: 0.95; }
+/*
+ * 按压反馈（对应官方「按压弹性反馈」）：
+ * 用带过冲的曲线（末段 >1），松手时会回弹一下，而不是生硬地弹回。
+ */
+.press {
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.42, 0.64, 1),
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.press:active {
+  transform: scale(0.955);
+  opacity: 0.92;
+  /* 按压点光源（简化版）：整块泛起内发光。
+     真正的"光随指动"要 ArkUI 的 LightComponent，uni-app 的 CSS 层拿不到。 */
+  box-shadow:
+    var(--p-shadow, 0 8rpx 24rpx rgba(40, 20, 10, 0.05)),
+    inset 0 0 60rpx rgba(255, 255, 255, 0.5);
+}
 
 /* ===================================================================
  * 毛玻璃（液态玻璃）
@@ -370,21 +398,30 @@ page {
   .t-card,
   .card,
   .glass {
-    background: var(--p-glass, rgba(255, 255, 255, 0.72));
-    backdrop-filter: blur(24rpx) saturate(150%);
-    -webkit-backdrop-filter: blur(24rpx) saturate(150%);
+    background-color: var(--p-glass, rgba(255, 255, 255, 0.72));
+    /* 材质流光：左上到右下一道斜向高光，模拟玻璃表面的反光（纯渐变，零成本） */
+    background-image: var(
+      --p-sheen,
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0.08) 30%,
+        rgba(255, 255, 255, 0) 52%
+      )
+    );
+    /*
+     * 模糊半径压到 14rpx：带 backdrop-filter 的元素在滚动/动画时每帧都要重算模糊，
+     * 平板上列表达到几十个就会掉帧。视觉上 14rpx 已经足够通透，
+     * 剩下的"玻璃感"交给上面的流光和下面的折射高光（都是零成本）。
+     */
+    backdrop-filter: blur(14rpx) saturate(140%);
+    -webkit-backdrop-filter: blur(14rpx) saturate(140%);
     border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
+    /* 折射：上缘提亮、下缘压暗，让卡片像有厚度的玻璃，而不是一块半透明色块 */
     box-shadow:
       var(--p-shadow, 0 8rpx 24rpx rgba(40, 20, 10, 0.05)),
-      inset 0 2rpx 0 rgba(255, 255, 255, 0.5);
-  }
-
-  /* 待办卡片：底色是用户选的彩色渐变（已在 gradOf 里降到 0.86 透明），
-     这里补上模糊就是"彩色液态玻璃"；不覆盖它的 background，保留自定义配色 */
-  .todo {
-    backdrop-filter: blur(18rpx) saturate(140%);
-    -webkit-backdrop-filter: blur(18rpx) saturate(140%);
-    border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.55));
+      inset 0 2rpx 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2rpx 0 rgba(255, 255, 255, 0.22);
   }
 
   /* 弹层：更实一点的玻璃，保证正文可读 */

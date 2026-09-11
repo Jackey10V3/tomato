@@ -178,8 +178,14 @@ export function buildTodoColorMap(
 export function colorGradient(hex: string, alpha = 1): string {
   const a = mixHex(hex, '#ffffff', 0.06)
   const b = mixHex(hex, '#ffffff', 0.34)
-  if (alpha >= 1) return `linear-gradient(135deg, ${a}, ${b})`
-  return `linear-gradient(135deg, ${rgba(a, alpha)}, ${rgba(b, alpha)})`
+  const from = alpha >= 1 ? a : rgba(a, alpha)
+  const to = alpha >= 1 ? b : rgba(b, alpha)
+  // 前面叠一层斜向高光 = 玻璃表面的流光。之所以写进渐变而不是 CSS：
+  // 待办卡片的 background 是内联样式，CSS 里的 background-image 会被它覆盖。
+  return (
+    'linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 46%),' +
+    `linear-gradient(135deg, ${from}, ${to})`
+  )
 }
 
 /** 把 3 位色值补成 6 位、补 # 号、统一小写；非法返回 null */
