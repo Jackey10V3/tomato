@@ -1,0 +1,120 @@
+{
+  "easycom": {
+    "autoscan": true
+  },
+  "pages": [
+    {
+      "path": "pages/task/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "待办"
+      }
+    },
+    {
+      "path": "pages/stats/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "统计数据"
+      }
+    },
+    {
+      "path": "pages/stats/records",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "专注记录"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/timer/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "专注",
+        "app-plus": {
+          "popGesture": "none"
+        }
+      }
+    },
+    {
+      "path": "pages/mine/achievements",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "成就"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/mine/settings",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "计时设置"
+      }
+    },
+    {
+      "path": "pages/mine/guards",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "强力专注"
+      }
+    },
+    {
+      "path": "pages/mine/appearance",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "外观音效"
+      }
+    },
+    {
+      "path": "pages/mine/debug",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "诊断信息"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "番茄Todo",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#FBF3F3"
+  },
+  "tabBar": {
+    "color": "#909399",
+    "selectedColor": "#E53935",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "height": "52px",
+    "list": [
+      {
+        "pagePath": "pages/task/index",
+        "text": "待办",
+        "iconPath": "static/tab/todo.png",
+        "selectedIconPath": "static/tab/todo-on.png"
+      },
+      {
+        "pagePath": "pages/stats/index",
+        "text": "统计数据",
+        "iconPath": "static/tab/charts.png",
+        "selectedIconPath": "static/tab/charts-on.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/tab/me.png",
+        "selectedIconPath": "static/tab/me-on.png"
+      }
+    ]
+  }
+}

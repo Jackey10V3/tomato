@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# uni-app 编译产物
+unpackage/
+dist/
+.hbuilderx/
+
+# npm 缓存（曾出现在项目根目录，不能入库）
+.npm-cache/
+
+# 本地调试与日志
+*.local
+*.log
+.DS_Store
+
+# 后端
+server/node_modules/
+server/dist/
+server/.env
+
+# 编辑器
+.idea/
+.vscode/
