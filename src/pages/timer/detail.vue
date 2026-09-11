@@ -1,12 +1,13 @@
 <script setup lang="ts">
 /** 二级专注页（图三风格）：整屏沉浸渐变压暗，顶部励志语录，细环大时间，底部任务名/进行中 */
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onLoad, onUnload, onBackPress } from '@dcloudio/uni-app'
 import { useTimer } from '@/composables/useTimer'
 import { useTaskStore } from '@/store/modules/task'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
 import { useResponsive } from '@/composables/useResponsive'
+import { useCanvasBg } from '@/composables/useCanvasBg'
 import { platform } from '@/platform'
 import { themeStyle, mixHex, buildTodoColorMap } from '@/utils/theme'
 import { MOTIVATIONS } from '@/utils/constant'
@@ -35,6 +36,17 @@ const accent = computed(() => {
   if (!taskColor.value) return ''
   return `linear-gradient(180deg, ${mixHex(taskColor.value, '#000000', 0.45)} 0%, ${taskColor.value} 55%, ${mixHex(taskColor.value, '#ffffff', 0.35)} 100%)`
 })
+
+/**
+ * 沉浸式底色：把 html 画布刷成同款渐变，盖住小白条手势区下方露出的白底。
+ * 有专属色用专属色渐变，否则用主题渐变（与 .screen.deep 的背景保持一致）。
+ */
+const canvasBg = useCanvasBg(
+  () =>
+    accent.value ||
+    `linear-gradient(180deg, ${style.value['--p-deep'] || '#1a2a6c'} 0%, ${style.value['--p-light'] || '#3a5a9c'} 55%, ${style.value['--p-deep'] || '#1a2a6c'} 100%)`,
+)
+watch(accent, () => canvasBg.apply())
 
 /** 每次进入专注换一条励志语：顺序轮换 + 随机步进，不连着重复，并能循环到全部文案 */
 function pickQuote() {
@@ -496,8 +508,9 @@ onUnload(() => {
 }
 
 /*
- * 横屏（平板）：计时环在左、任务信息与按钮在右，两栏收拢到屏幕中央
- * （此前两栏各占一半、内容又各自居中，中间空出一大块，环也显得偏小偏角落）。
+ * 横屏（平板）：计时环在左、任务信息与按钮在右。
+ * 两栏按内容自适应宽度（flex-basis auto），中间留固定间距，整组由 justify-content 居中 ——
+ * 此前各占 46% 宽，内容虽然在各栏内居中，但栏本身分居屏幕两侧，中间空一大块，观感就是"没居中"。
  * 竖着排时横屏高度（最小只有 390px）会把环和按钮挤在一起，环也放不下。
  */
 .screen.is-landscape {
@@ -507,8 +520,8 @@ onUnload(() => {
   justify-content: center;
 }
 .screen.is-landscape .topbar { width: 100%; padding-bottom: 0; }
-.screen.is-landscape .center { flex: 0 1 46%; min-width: 0; }
-.screen.is-landscape .bottom { flex: 0 1 46%; min-width: 0; padding-right: 0; }
+.screen.is-landscape .center { flex: 0 0 auto; }
+.screen.is-landscape .bottom { flex: 0 0 auto; margin-left: 9%; margin-right: 4%; }
 .screen.is-landscape .center .ring { width: 430rpx; height: 430rpx; }
 .screen.is-landscape .center .ring .time { font-size: 100rpx; }
 /* 平板宽屏下再放大一号，避免大屏上环显得小气 */

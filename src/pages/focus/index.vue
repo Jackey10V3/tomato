@@ -3,12 +3,13 @@
  * 专注页（番茄ToDo 风格）：红白刻度圆环 + 整屏计时 + 底部开始主按钮
  * 待机：浅色版面，中央大圆环（内显 25:00），底部全宽开始键；运行中整屏沉浸变深。
  */
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { onShow, onUnload } from '@dcloudio/uni-app'
 import { useTimer } from '@/composables/useTimer'
 import { useChrome } from '@/composables/usePageChrome'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useTaskStore } from '@/store/modules/task'
+import { useCanvasBg } from '@/composables/useCanvasBg'
 import { themeStyle } from '@/utils/theme'
 import { MOTIVATIONS, WEEK_CN } from '@/utils/constant'
 import NoisePlayer from '@/components/NoisePlayer.vue'
@@ -24,6 +25,21 @@ const style = computed(() => themeStyle(settings.s.theme))
 const st = timer.st
 const bigText = timer.bigText
 const progress = timer.progress
+
+/**
+ * 沉浸式底色：把 html 画布刷成同款背景，盖住小白条手势区下方露出的白底。
+ * 待机用主题浅底，运行中用主题深色渐变（与 .screen.deep 一致）。
+ */
+const canvasBg = useCanvasBg(() => {
+  const s = style.value
+  return st.status !== 'idle'
+    ? `linear-gradient(165deg, ${s['--p-deep'] || '#c62828'} 0%, ${s['--p-light'] || '#ef5350'} 130%)`
+    : s['--p-bg'] || '#faf6f3'
+})
+watch(
+  () => st.status,
+  () => canvasBg.apply(),
+)
 
 const kindLabel: Record<SessionKind, string> = {
   focus: '专注',

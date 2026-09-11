@@ -133,7 +133,9 @@ page {
   position: fixed;
   top: 0; right: 0; bottom: 0; left: 0;
   background: rgba(15, 10, 8, 0.5);
-  z-index: 90;
+  /* 必须压过悬浮 Dock（z-index 90）：否则弹窗打开时 Dock 还亮在最上层，
+     既能被点到切页，还会把遮罩下面的按钮透印在 Dock 上 */
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -176,19 +178,18 @@ page {
  *  3. 位移距离要小：列表项用 14rpx 的轻微下沉，块级卡片用 22rpx 的横向轻推，
  *     大距离滑入在反复切 tab 时会变成"弹幕"，非常吵。
  */
-.fade-row { animation: rowIn 0.4s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
+.fade-row { animation: rowIn 0.35s ease-out both; }
 @keyframes rowIn {
-  /* 从左往右滑入：位移量加大到 26rpx、时长放到 0.4s，
-     让"滑入"能被明显感知（此前 10rpx/0.3s 观感像"震了一下"而不是动画）。
-     起点透明度仍保持 0.4+，避免缓存页重播时闪暗。 */
-  from { opacity: 0.4; transform: translateX(-26rpx); }
-  to { opacity: 1; transform: none; }
+  /* 浅入浅出：纯透明度淡入，不做位移（左滑/上移都试过，用户反馈"突兀"）。
+     起点保留 0.25 而不是 0：缓存页重播万一慢半帧也只是轻微变暗，不会闪黑。 */
+  from { opacity: 0.25; }
+  to { opacity: 1; }
 }
 
-.slide-in-left { animation: slideInLeft 0.42s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
+.slide-in-left { animation: slideInLeft 0.38s ease-out both; }
 @keyframes slideInLeft {
-  from { opacity: 0.4; transform: translateX(-34rpx); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0.25; }
+  to { opacity: 1; }
 }
 
 /* ===================================================================
