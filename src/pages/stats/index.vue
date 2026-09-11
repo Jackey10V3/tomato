@@ -12,7 +12,7 @@ import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
 import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import { themeStyle, posterBg, chartPalette, buildTodoColorMap } from '@/utils/theme'
-import { mondayKey, parseDateKey } from '@/utils/date'
+import { mondayKey, parseDateKey, dateKey } from '@/utils/date'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import type { FocusRecord } from '@/types/focus'
@@ -339,6 +339,47 @@ function barH(v: number): number {
   return 8 + (v / maxHourVal.value) * 120
 }
 
+/**
+ * 近 12 周坚持轨迹（GitHub 贡献图风格热力图）。
+ * 口径与统计一致：countsInStats 的记录按天聚合专注分钟；
+ * 等级 0-4：0 / <30min / <60min / <120min / ≥120min；未来日期留空。
+ */
+const WEEKS_SHOWN = 12
+const heatmap = computed(() => {
+  const minsByDay = new Map<string, number>()
+  store.records.forEach(r => {
+    if (!countsInStats(r)) return
+    minsByDay.set(r.dateKey, (minsByDay.get(r.dateKey) || 0) + r.actualSec / 60)
+  })
+  const todayK = store.todayKey
+  const start = parseDateKey(mondayKey())
+  start.setDate(start.getDate() - (WEEKS_SHOWN - 1) * 7)
+  const weeks: { days: { key: string; level: number; future: boolean }[] }[] = []
+  for (let w = 0; w < WEEKS_SHOWN; w++) {
+    const days: { key: string; level: number; future: boolean }[] = []
+    for (let d = 0; d < 7; d++) {
+      const day = parseDateKey(dateKey(start))
+      day.setDate(day.getDate() + w * 7 + d)
+      const key = dateKey(day)
+      const mins = minsByDay.get(key) || 0
+      const level = mins <= 0 ? 0 : mins < 30 ? 1 : mins < 60 ? 2 : mins < 120 ? 3 : 4
+      days.push({ key, level, future: key > todayK })
+    }
+    weeks.push({ days })
+  }
+  return weeks
+})
+const heatmapTotalMin = computed(() => {
+  const minsByDay = new Map<string, number>()
+  store.records.forEach(r => {
+    if (!countsInStats(r)) return
+    minsByDay.set(r.dateKey, (minsByDay.get(r.dateKey) || 0) + r.actualSec / 60)
+  })
+  let total = 0
+  heatmap.value.forEach(w => w.days.forEach(d => { total += minsByDay.get(d.key) || 0 }))
+  return Math.round(total)
+})
+
 function goTodo() {
   uni.navigateTo({ url: '/pages/stats/records' })
 }
@@ -520,6 +561,29 @@ onShow(() => {
             <text v-for="h in 24" :key="h" class="ax">{{ h === 1 ? '0' : h === 7 ? '6' : h === 13 ? '12' : h === 19 ? '18' : h === 24 ? '23时' : '' }}</text>
           </view>
         </view>
+
+        <!-- 近 12 周坚持轨迹（热力图） -->
+        <view class="t-card fade-row delay-4">
+          <view class="row-head">
+            <text class="t-section-title">坚持轨迹 · 近 12 周</text>
+            <text class="date">累计 {{ human(heatmapTotalMin) }}</text>
+          </view>
+          <view class="heat">
+            <view v-for="(w, wi) in heatmap" :key="wi" class="heat-week">
+              <view
+                v-for="d in w.days"
+                :key="d.key"
+                class="heat-cell"
+                :class="['lv' + d.level, { future: d.future }]"
+              />
+            </view>
+          </view>
+          <view class="heat-legend">
+            <text>少</text>
+            <view class="heat-cell lv0" /><view class="heat-cell lv1" /><view class="heat-cell lv2" /><view class="heat-cell lv3" /><view class="heat-cell lv4" />
+            <text>多</text>
+          </view>
+        </view>
         </view>
 
         <text class="stat-note">* 单次专注低于 3 分钟不计入统计（仍保留在专注记录里）</text>
@@ -681,5 +745,29 @@ onShow(() => {
 }
 .axis { display: flex; gap: 6rpx; margin-top: 8rpx; font-size: 20rpx; color: var(--p-sub, #b39aa1); }
 .ax { flex: 1; text-align: center; white-space: nowrap; }
+/* 近 12 周热力图：12 列（周）× 7 行（周一~周日） */
+.heat { display: flex; justify-content: space-between; margin-top: 16rpx; }
+.heat-week { display: flex; flex-direction: column; gap: 6rpx; }
+.heat-cell {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 4rpx;
+  background: var(--p-border, #f0e3e6);
+}
+.heat-cell.lv1 { background: var(--p-primary, #e2475f); opacity: 0.25; }
+.heat-cell.lv2 { background: var(--p-primary, #e2475f); opacity: 0.45; }
+.heat-cell.lv3 { background: var(--p-primary, #e2475f); opacity: 0.7; }
+.heat-cell.lv4 { background: var(--p-primary, #e2475f); }
+.heat-cell.future { visibility: hidden; }
+.heat-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8rpx;
+  margin-top: 14rpx;
+  font-size: 20rpx;
+  color: var(--p-sub, #b39aa1);
+}
+.heat-legend .heat-cell { width: 16rpx; height: 16rpx; }
 .stat-note { display: block; text-align: center; margin: 14rpx 0 10rpx; font-size: 22rpx; color: var(--p-sub, #bbb); }
 </style>

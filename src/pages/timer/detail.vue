@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 二级专注页（图三风格）：整屏沉浸渐变压暗，顶部励志语录，细环大时间，底部任务名/进行中 */
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { onLoad, onUnload, onBackPress } from '@dcloudio/uni-app'
 import { useTimer } from '@/composables/useTimer'
 import { useTaskStore } from '@/store/modules/task'
@@ -198,6 +198,32 @@ function onLoadDone() {
 }
 
 const dialPct = computed(() => Math.max(0, Math.min(100, progress.value * 100)))
+
+// ---------- 禅模式：运行中持续无操作 15s，隐去顶栏/操作区只留呼吸环；点屏唤醒 ----------
+const ZEN_AFTER_MS = 15000
+const zen = ref(false)
+let lastActive = Date.now()
+let zenTimer: ReturnType<typeof setInterval> | null = null
+
+function markActive() {
+  lastActive = Date.now()
+  if (zen.value) zen.value = false
+}
+function checkZen() {
+  // 只在"专注运行中"进入禅模式：暂停/待开始时界面本身就是操作对象
+  if (running.value && !zen.value && Date.now() - lastActive >= ZEN_AFTER_MS) {
+    zen.value = true
+  }
+}
+onMounted(() => {
+  zenTimer = setInterval(checkZen, 3000)
+})
+onUnmounted(() => {
+  if (zenTimer) clearInterval(zenTimer)
+  zenTimer = null
+})
+// 离开页面再回来/从暂停恢复时，重新计时并退出禅模式
+watch(() => st.status, () => markActive())
 /**
  * 进度弧：conic-gradient 画一圈，再用 mask 抠成环带。
  * 每秒前进的角度极小（25 分钟全程 ≈ 0.24°/秒），所以看起来是连续走的，不需要 CSS 过渡。
@@ -236,7 +262,13 @@ onUnload(() => {
 </script>
 
 <template>
-  <view class="screen deep" :class="layoutClass" :style="[style, { paddingTop: statusBarH + 'px' }, accent ? { background: accent } : {}]">
+  <view
+    class="screen deep"
+    :class="[layoutClass, { zen: zen && running }]"
+    :style="[style, { paddingTop: statusBarH + 'px' }, accent ? { background: accent } : {}]"
+    @touchstart="markActive"
+    @click="markActive"
+  >
     <!-- 背景光晕（跟随该待办的专属色，进一步区分不同专注） -->
     <view
       class="glow"
@@ -338,7 +370,20 @@ onUnload(() => {
   background: linear-gradient(180deg, var(--p-deep, #1a2a6c) 0%, var(--p-light, #3a5a9c) 55%, var(--p-deep, #1a2a6c) 100%);
   transition: background 0.4s;
 }
-.glow { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+/* 禅模式：顶栏/操作区缓缓隐去，只留呼吸环。点屏即唤醒（markActive） */
+.topbar,
+.bottom { transition: opacity 0.6s ease; }
+.screen.deep.zen .topbar,
+.screen.deep.zen .bottom {
+  opacity: 0;
+  pointer-events: none;
+}
+/* 关键：bottom 的入场动画 riseIn 是 fill-mode:both，动画填充的 opacity:1
+   在层叠里优先于上面的 opacity:0，必须显式移除动画，隐身才能生效 */
+.screen.deep.zen .bottom { animation: none; }
+/* 禅模式下光晕也跟着收敛，让环成为唯一光源 */
+.glow { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; transition: opacity 0.8s ease; }
+.screen.deep.zen .glow { opacity: 0.35; }
 /*
  * 入场动画（二级页只在进入时挂载一次，从 0 淡入不会闪，这点和 tab 页不同）。
  * 节奏参考主流专注类 App 的"分层错峰"：

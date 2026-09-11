@@ -100,6 +100,27 @@ function onExamTime(e: { detail: { value: string } }) {
 const todayStat = computed(() => focusStore.summary.today)
 const streak = computed(() => focusStore.summary.streakDays)
 
+// 今日番茄目标：完成度 0-100（超过 100 封顶显示，努力不封顶）
+const goalPct = computed(() => {
+  const goal = settings.s.dailyGoal
+  if (!goal || goal <= 0) return 0
+  return Math.min(100, Math.round((todayStat.value.pomodoros / goal) * 100))
+})
+/** 点目标胶囊改每日目标（0-99 之间的整数，0 表示不设目标） */
+function editGoal() {
+  uni.showModal({
+    title: '每日番茄目标',
+    content: String(settings.s.dailyGoal || 8),
+    editable: true,
+    placeholderText: '输入 0~99，0 为不设目标',
+    success: r => {
+      if (!r.confirm) return
+      const n = Math.max(0, Math.min(99, Math.round(Number(r.content))))
+      if (Number.isFinite(n)) settings.update({ dailyGoal: n })
+    },
+  })
+}
+
 // 背景海报
 const poster = computed(() => posterBg(settings.s.poster))
 // 等级
@@ -354,6 +375,12 @@ onShow(() => {
           <view class="chip-row">
             <view class="study-pill" @click="goGuards">点击开启学霸模式</view>
             <view class="lv-pill" @click="goAch">Lv.{{ level.level }} · {{ level.title }}</view>
+            <view v-if="settings.s.dailyGoal > 0" class="goal-pill" @click="editGoal">
+              <text class="goal-txt">🍅 今日 {{ todayStat.pomodoros }}/{{ settings.s.dailyGoal }}</text>
+              <view class="goal-bar">
+                <view class="goal-fill" :style="{ width: goalPct + '%' }" />
+              </view>
+            </view>
           </view>
         </view>
         <view class="t-hero-icons">
@@ -580,6 +607,29 @@ onShow(() => {
   font-size: 22rpx;
   border-radius: 999rpx;
   padding: 4rpx 16rpx;
+}
+/* 今日目标胶囊：数字 + 迷你进度条，达成后整颗变主题色 */
+.goal-pill {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  background: var(--p-card, rgba(255, 255, 255, 0.72));
+  border-radius: 999rpx;
+  padding: 4rpx 16rpx;
+}
+.goal-txt { font-size: 22rpx; color: var(--p-text, #333); }
+.goal-bar {
+  width: 64rpx;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+.goal-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: var(--p-primary, #c04a63);
+  transition: width 0.4s ease;
 }
 .lv-pill {
   background: var(--p-grad, linear-gradient(135deg, #ffd166, #f0932b));

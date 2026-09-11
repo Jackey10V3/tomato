@@ -158,6 +158,8 @@ export interface AppSettings {
   /** 提示音 / 白噪音音量 0-1 */
   volume: number
   defaultMode: TimerMode
+  /** 每日番茄目标（0 = 不设目标，仅作展示激励） */
+  dailyGoal: number
   /** 专注计时核心设置 */
   timer: {
     focusMin: number
@@ -198,6 +200,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   poster: 'classic',
   volume: 0.85,
   defaultMode: 'countdown',
+  dailyGoal: 8,
   timer: { focusMin: 25, shortMin: 5, longMin: 15, roundsPerCycle: 4, autoStartNext: true },
   focusGuard: {
     studyHard: false,
