@@ -12,9 +12,9 @@ export const notify = {
     // #ifdef APP-HARMONY
     // TODO(M6)：接入鸿蒙持续通知
     // #endif
-    console.log('[platform/notify]', title, content)
+    // 调试日志已移除
   },
   clear() {
-    console.log('[platform/notify] clear')
+    // 调试日志已移除
   },
 }

@@ -22,7 +22,7 @@ export const keepAlive = {
     // TODO(M6)：uts 插件调用 backgroundTaskManager(AUDIO_PLAYBACK) + 持续通知
     // ;(globalThis as any).HarmonyKeepAlive?.startLongRunning?.()
     // #endif
-    console.log('[platform/keepAlive] start', this)
+    // 调试日志已移除
   },
   stop() {
     // #ifdef APP-PLUS
@@ -32,7 +32,7 @@ export const keepAlive = {
     // #ifdef APP-HARMONY
     // ;(globalThis as any).HarmonyKeepAlive?.stopLongRunning?.()
     // #endif
-    console.log('[platform/keepAlive] stop')
+    // 调试日志已移除
   },
 }
 
