@@ -146,10 +146,10 @@ onShow(() => {
 .main { flex: 1; min-width: 0; }
 .top { display: flex; align-items: center; gap: 12rpx; }
 .name { flex: 1; font-size: 28rpx; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.res { font-size: 18rpx; border: 1rpx solid currentColor; border-radius: 8rpx; padding: 0 8rpx; flex-shrink: 0; }
-.short { font-size: 17rpx; color: var(--p-sub, #999); background: var(--p-soft, #f3efeb); border-radius: 8rpx; padding: 0 8rpx; flex-shrink: 0; }
-.sub { font-size: 20rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
-.empty { display: flex; flex-direction: column; align-items: center; gap: 12rpx; margin-top: 160rpx; color: var(--p-sub, #999); font-size: 26rpx; .emoji { font-size: 80rpx; } .sub { font-size: 20rpx; color: var(--p-sub, #bbb); } }
-.tip { text-align: center; font-size: 20rpx; color: var(--p-sub, #bbb); margin-top: 16rpx; }
+.res { font-size: 22rpx; border: 1rpx solid currentColor; border-radius: 8rpx; padding: 0 8rpx; flex-shrink: 0; }
+.short { font-size: 22rpx; color: var(--p-sub, #999); background: var(--p-soft, #f3efeb); border-radius: 8rpx; padding: 0 8rpx; flex-shrink: 0; }
+.sub { font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 12rpx; margin-top: 160rpx; color: var(--p-sub, #999); font-size: 26rpx; .emoji { font-size: 80rpx; } .sub { font-size: 22rpx; color: var(--p-sub, #bbb); } }
+.tip { text-align: center; font-size: 22rpx; color: var(--p-sub, #bbb); margin-top: 16rpx; }
 .bottom-space { height: 80rpx; }
 </style>

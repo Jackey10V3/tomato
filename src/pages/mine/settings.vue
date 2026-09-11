@@ -110,7 +110,7 @@ function inc(key: 'focusMin' | 'shortMin' | 'longMin' | 'roundsPerCycle', delta:
   font-size: 28rpx;
   .lbl { flex: 1; margin-right: 20rpx; }
   .lbl-t { font-size: 28rpx; }
-  .lbl-s { display: block; font-size: 20rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
+  .lbl-s { display: block; font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
 }
 .stepper { display: flex; align-items: center; gap: 20rpx; }
 .step { width: 56rpx; height: 56rpx; border-radius: 50%; background: var(--p-soft, #f2efec); display: flex; align-items: center; justify-content: center; font-size: 32rpx; }
@@ -132,7 +132,7 @@ function inc(key: 'focusMin' | 'shortMin' | 'longMin' | 'roundsPerCycle', delta:
   &.on { border-color: var(--p-primary, #e53935); background: var(--p-soft, #fff6f5); }
   .m-icon { font-size: 44rpx; }
   .m-name { font-size: 28rpx; font-weight: 700; margin-top: 8rpx; }
-  .m-desc { font-size: 20rpx; color: var(--p-sub, #999); margin-top: 4rpx; line-height: 1.5; }
+  .m-desc { font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; line-height: 1.5; }
 }
 .bottom-space { height: 80rpx; }
 </style>

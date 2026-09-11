@@ -117,7 +117,7 @@ async function retryServer() {
 .flex { flex: 1; }
 .eye { font-size: 30rpx; padding: 0 10rpx 20rpx 0; }
 .submit { margin-top: 12rpx; }
-.note { display: block; margin-top: 20rpx; font-size: 20rpx; color: var(--p-sub, #999); line-height: 1.7; }
+.note { display: block; margin-top: 20rpx; font-size: 22rpx; color: var(--p-sub, #999); line-height: 1.7; }
 .logged { display: flex; flex-direction: column; align-items: center; gap: 10rpx; padding: 50rpx 30rpx; }
 .big-avatar { font-size: 110rpx; }
 .nick { font-size: 36rpx; font-weight: 800; }

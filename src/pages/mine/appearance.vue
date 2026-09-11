@@ -163,11 +163,11 @@ onShow(() => {
   border: 4rpx solid transparent;
   &.on { border-color: var(--p-primary, #e53935); }
 }
-.name { font-size: 20rpx; margin-top: 8rpx; color: var(--p-sub, #999); }
+.name { font-size: 22rpx; margin-top: 8rpx; color: var(--p-sub, #999); }
 .row { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 0; border-bottom: 2rpx solid #f7f4f1; &:last-child { border-bottom: none; } }
 .lbl { flex: 1; margin-right: 16rpx; }
 .lbl-t { font-size: 28rpx; }
-.lbl-s { display: block; font-size: 20rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
+.lbl-s { display: block; font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
 .sw {
   width: 92rpx; height: 52rpx; border-radius: 999rpx; background: #d9d2cc; position: relative; flex-shrink: 0; transition: background 0.2s;
   &::after { content: ''; position: absolute; top: 6rpx; left: 6rpx; width: 40rpx; height: 40rpx; border-radius: 50%; background: #fff; transition: transform 0.2s; }
@@ -183,19 +183,19 @@ onShow(() => {
   &.on, .poster.on & { border-color: var(--p-primary, #e53935); }
 }
 .pok { color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.3); }
-.pname { font-size: 18rpx; margin-top: 6rpx; color: var(--p-sub, #999); }
+.pname { font-size: 22rpx; margin-top: 6rpx; color: var(--p-sub, #999); }
 .vol-row { display: flex; align-items: center; gap: 16rpx; margin-top: 18rpx; }
 .vol-ico { font-size: 30rpx; }
 .slider { flex: 1; }
 .vol-val { font-size: 24rpx; color: var(--p-primary, #e53935); font-weight: 700; width: 80rpx; text-align: right; }
-.desc { display: block; margin-top: 10rpx; font-size: 20rpx; color: var(--p-sub, #999); }
+.desc { display: block; margin-top: 10rpx; font-size: 22rpx; color: var(--p-sub, #999); }
 .sound-row { display: flex; align-items: flex-start; gap: 16rpx; margin-top: 24rpx; }
 .s-emoji { font-size: 34rpx; }
 .s-main { flex: 1; }
 .s-label { font-size: 26rpx; font-weight: 600; }
 .s-chips { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 12rpx; }
 .s-chip {
-  font-size: 20rpx; background: var(--p-soft, #f2efec); border-radius: 999rpx; padding: 6rpx 18rpx; color: var(--p-sub, #777);
+  font-size: 22rpx; background: var(--p-soft, #f2efec); border-radius: 999rpx; padding: 6rpx 18rpx; color: var(--p-sub, #777);
   &.on { background: var(--p-primary, #e53935); color: #fff; }
 }
 .s-preview { color: var(--p-primary, #e53935); font-size: 24rpx; margin-top: 8rpx; }
@@ -204,6 +204,6 @@ onShow(() => {
   background: var(--p-soft, #fdecef); color: var(--p-primary, #e53935);
   border-radius: 999rpx; padding: 18rpx; font-size: 26rpx; font-weight: 700;
 }
-.note { font-size: 20rpx; color: var(--p-sub, #999); line-height: 1.7; }
+.note { font-size: 22rpx; color: var(--p-sub, #999); line-height: 1.7; }
 .bottom-space { height: 80rpx; }
 </style>

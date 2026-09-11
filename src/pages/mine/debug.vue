@@ -116,6 +116,6 @@ onShow(refresh)
 .err { padding: 14rpx 0; border-bottom: 2rpx solid var(--p-border, #f4f0f2); &:last-child { border-bottom: none; } }
 .err-t { font-size: 22rpx; color: var(--p-primary, #e53935); font-weight: 700; }
 .err-m { display: block; margin-top: 6rpx; font-size: 22rpx; color: var(--p-text, #333); word-break: break-all; }
-.note { margin: 0 28rpx; font-size: 20rpx; color: var(--p-sub, #999); line-height: 1.7; }
+.note { margin: 0 28rpx; font-size: 22rpx; color: var(--p-sub, #999); line-height: 1.7; }
 .bottom-space { height: 60rpx; }
 </style>

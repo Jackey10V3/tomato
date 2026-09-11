@@ -561,14 +561,14 @@ onShow(() => {
   align-self: flex-start;
   background: var(--p-card, rgba(255, 255, 255, 0.72));
   color: var(--p-primary, #c04a63);
-  font-size: 20rpx;
+  font-size: 22rpx;
   border-radius: 999rpx;
   padding: 4rpx 16rpx;
 }
 .lv-pill {
   background: var(--p-grad, linear-gradient(135deg, #ffd166, #f0932b));
   color: #fff;
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: 800;
   border-radius: 999rpx;
   padding: 4rpx 16rpx;
@@ -590,11 +590,11 @@ onShow(() => {
 }
 .exam-left { display: flex; flex-direction: column; gap: 6rpx; }
 .exam-title { font-size: 30rpx; font-weight: 800; text-shadow: 0 2rpx 6rpx rgba(0,0,0,0.12); }
-.exam-date { font-size: 20rpx; opacity: 0.92; }
+.exam-date { font-size: 22rpx; opacity: 0.92; }
 .exam-right { display: flex; align-items: flex-end; gap: 14rpx; }
 .er-item { display: flex; align-items: baseline; gap: 3rpx; }
 .er-n { font-size: 46rpx; font-weight: 900; }
-.er-u { font-size: 18rpx; opacity: 0.92; }
+.er-u { font-size: 22rpx; opacity: 0.92; }
 .ov-strip {
   display: flex;
   margin: 4rpx 24rpx 6rpx;
@@ -605,7 +605,7 @@ onShow(() => {
 }
 .ov { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2rpx; }
 .ov-n { font-size: 34rpx; font-weight: 800; color: var(--p-primary, #d8415d); }
-.ov-c { font-size: 18rpx; color: var(--p-sub, #a08a90); }
+.ov-c { font-size: 22rpx; color: var(--p-sub, #a08a90); }
 .pick-row {
   display: flex; align-items: center; justify-content: space-between;
   background: #f6f3f0; border-radius: 16rpx; padding: 18rpx 22rpx; font-size: 28rpx;
@@ -678,7 +678,7 @@ onShow(() => {
   font-size: 22rpx; font-weight: 800; text-align: center; line-height: 40rpx;
 }
 .g-t { flex: 1; font-size: 25rpx; line-height: 1.6; color: var(--p-text, #333); }
-.g-note { font-size: 20rpx; color: var(--p-sub, #999); line-height: 1.6; margin-top: 4rpx; }
+.g-note { font-size: 22rpx; color: var(--p-sub, #999); line-height: 1.6; margin-top: 4rpx; }
 .g-btn { margin-top: 16rpx; }
 
 
@@ -788,7 +788,7 @@ onShow(() => {
   font-size: 24rpx;
   font-weight: 700;
 }
-.cm-tip { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--p-sub, #999); }
+.cm-tip { display: block; margin-top: 14rpx; font-size: 22rpx; color: var(--p-sub, #999); }
 .card-actions { display: flex; align-items: center; gap: 16rpx; margin-top: 34rpx; }
 .btn-danger { color: var(--p-primary, #e53935); background: var(--p-soft, #fff0ef); border-radius: 999rpx; padding: 18rpx 30rpx; font-size: 26rpx; }
 .btn-space { flex: 1; }

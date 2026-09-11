@@ -257,7 +257,7 @@ onShow(() => {
   .h-pill {
     display: flex; align-items: center; gap: 4rpx;
     background: rgba(255, 255, 255, 0.22);
-    border-radius: 999rpx; padding: 4rpx 16rpx; font-size: 20rpx;
+    border-radius: 999rpx; padding: 4rpx 16rpx; font-size: 22rpx;
     .v { font-weight: 800; }
     &.lv { background: var(--p-soft, rgba(255,255,255,0.22)); color: #fff; border: 1rpx solid rgba(255, 255, 255, 0.6); font-weight: 800; }
   }
@@ -271,8 +271,8 @@ onShow(() => {
 .grid-card { padding: 26rpx 10rpx; display: flex; }
 .grid-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
 .g-ico { font-size: 46rpx; &.gold { color: var(--p-primary, #e0a800); } &.blue { color: var(--p-primary, #1e88e5); } &.red { color: var(--p-primary, #f2607c); } }
-.g-name { font-size: 20rpx; color: var(--p-sub, #666); }
-.tag { font-size: 18rpx; color: #fff; background: #b9a2a8; border-radius: 8rpx; padding: 2rpx 10rpx; font-weight: 700; }
+.g-name { font-size: 22rpx; color: var(--p-sub, #666); }
+.tag { font-size: 22rpx; color: #fff; background: #b9a2a8; border-radius: 8rpx; padding: 2rpx 10rpx; font-weight: 700; }
 .ri { &.blue { color: #1e88e5; } &.purple { color: #8e24aa; } &.red { color: #f2607c; } &.cyan { color: #00acc1; } &.pink { color: #ec407a; } &.gray { color: #909399; } }
 .card-head { display: flex; justify-content: space-between; align-items: center; }
 .card-title { font-size: 34rpx; font-weight: 800; }

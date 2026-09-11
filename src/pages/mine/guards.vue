@@ -155,7 +155,7 @@ function addCustom() {
   &::after { content: ''; position: absolute; top: 6rpx; left: 6rpx; width: 40rpx; height: 40rpx; border-radius: 50%; background: #fff; transition: transform 0.2s; }
   &.on { background: var(--p-primary, #e53935); &::after { transform: translateX(40rpx); } }
 }
-.sub-line { margin-top: 16rpx; font-size: 20rpx; color: var(--p-primary, #e53935); background: #fff5f4; border-radius: 14rpx; padding: 12rpx 16rpx; }
+.sub-line { margin-top: 16rpx; font-size: 22rpx; color: var(--p-primary, #e53935); background: #fff5f4; border-radius: 14rpx; padding: 12rpx 16rpx; }
 .row {
   display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; font-size: 26rpx;
   border-bottom: 2rpx solid #f7f4f1; &:last-child { border-bottom: none; }
@@ -168,12 +168,12 @@ function addCustom() {
   display: flex; align-items: center; gap: 12rpx;
   background: #f6f3f0; border-radius: 16rpx; padding: 12rpx 18rpx;
   font-size: 26rpx;
-  .pkg { flex: 1; font-size: 18rpx; color: var(--p-sub, #999); }
+  .pkg { flex: 1; font-size: 22rpx; color: var(--p-sub, #999); }
   .x { color: #c9c2bc; font-size: 30rpx; }
 }
 .empty-wl { display: block; margin-top: 16rpx; font-size: 22rpx; color: var(--p-sub, #999); }
 .add-btn { margin-top: 18rpx; text-align: center; color: var(--p-primary, #e53935); font-size: 28rpx; background: #fff5f4; border-radius: 16rpx; padding: 16rpx; }
-.note { font-size: 20rpx; color: var(--p-sub, #999); line-height: 1.7; }
+.note { font-size: 22rpx; color: var(--p-sub, #999); line-height: 1.7; }
 .bottom-space { height: 80rpx; }
 .mask { position: fixed; inset: 0; background: rgba(10, 6, 4, 0.55); z-index: 99; display: flex; align-items: flex-end; }
 .sheet {
@@ -182,7 +182,7 @@ function addCustom() {
   .opt {
     display: flex; align-items: center; gap: 16rpx; padding: 24rpx 8rpx;
     border-bottom: 2rpx solid #f5f1ed; font-size: 28rpx;
-    .pkg { flex: 1; font-size: 20rpx; color: var(--p-sub, #999); }
+    .pkg { flex: 1; font-size: 22rpx; color: var(--p-sub, #999); }
     &.custom { color: var(--p-primary, #e53935); border-bottom: none; }
     &.disabled { color: #ccc; }
   }

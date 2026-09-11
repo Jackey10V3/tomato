@@ -532,7 +532,7 @@ onShow(() => {
   .tc-grid { display: flex; margin-top: 24rpx; }
   .tc { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
   .n { font-size: 52rpx; font-weight: 900; }
-  .c { font-size: 20rpx; opacity: 0.9; }
+  .c { font-size: 22rpx; opacity: 0.9; }
 }
 .row-head { display: flex; align-items: center; gap: 14rpx; }
 .date { font-size: 22rpx; color: var(--p-sub, #b39aa1); flex: 1; }
@@ -542,7 +542,7 @@ onShow(() => {
 .hc { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
 .hc .n { font-size: 40rpx; font-weight: 800; color: var(--p-primary, #e2475f); }
 .hc .n.sm { font-size: 34rpx; }
-.hc .c { font-size: 20rpx; color: var(--p-sub, #b39aa1); }
+.hc .c { font-size: 22rpx; color: var(--p-sub, #b39aa1); }
 
 /* ---- 入场错峰：卡片自上而下依次浮现，而不是整页同时闪一下 ---- */
 .delay-1 { animation-delay: 60ms; }
@@ -552,7 +552,7 @@ onShow(() => {
 
 /* ---- 连续打卡 / 完成率 ---- */
 .streak-chip {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: var(--p-primary, #e2475f);
   background: var(--p-soft, #fdecf0);
   border-radius: 999rpx;
@@ -647,7 +647,7 @@ onShow(() => {
   .dot { width: 20rpx; height: 20rpx; border-radius: 50%; }
   .chip-name { flex: 1; font-size: 26rpx; }
   .chip-val { font-size: 24rpx; color: var(--p-primary, #e2475f); font-weight: 700; }
-  .chip-pct { width: 76rpx; text-align: right; font-size: 20rpx; color: var(--p-sub, #b39aa1); }
+  .chip-pct { width: 76rpx; text-align: right; font-size: 22rpx; color: var(--p-sub, #b39aa1); }
 }
 .btn-main {
   margin-top: 24rpx;
@@ -656,7 +656,7 @@ onShow(() => {
   border-radius: 999rpx; padding: 18rpx 68rpx;
   box-shadow: 0 10rpx 24rpx rgba(216, 65, 93, 0.22);
 }
-.empty { display: flex; flex-direction: column; align-items: center; gap: 10rpx; padding: 40rpx 0; color: #b39aa1; font-size: 24rpx; .emoji { font-size: 70rpx; } .sub { font-size: 20rpx; color: #c9bfc4; } }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 10rpx; padding: 40rpx 0; color: #b39aa1; font-size: 24rpx; .emoji { font-size: 70rpx; } .sub { font-size: 22rpx; color: #c9bfc4; } }
 .big-num { display: block; margin-top: 10rpx; font-size: 44rpx; font-weight: 800; color: var(--p-primary, #e2475f); }
 .hour-head { display: flex; align-items: baseline; gap: 16rpx; }
 .peak { font-size: 22rpx; color: var(--p-sub, #b39aa1); }

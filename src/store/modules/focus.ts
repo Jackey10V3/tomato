@@ -74,6 +74,22 @@ function read(): FocusRecord[] {
   }
 }
 
+/* ---------------- 记录落盘：合并写入 ---------------- */
+/** 距上次写入小于该间隔的连续变更会合并成一次写入 */
+const WRITE_GAP_MS = 250
+let writeTimer: ReturnType<typeof setTimeout> | null = null
+let pendingRaw = ''
+let lastRaw = ''
+let lastWriteAt = 0
+
+/** 真正写入（内容未变则跳过） */
+function writeNow(raw: string) {
+  lastWriteAt = Date.now()
+  if (raw === lastRaw) return
+  lastRaw = raw
+  storage.set(K, raw)
+}
+
 function readUnlocked(): Record<string, number> {
   const raw = storage.get<string>(UNLOCK_K)
   if (!raw) return {}
@@ -411,6 +427,9 @@ export const useFocusStore = defineStore('focus', {
     clearAll() {
       this.records = []
       storage.remove(K)
+      // 存储已清空，重置缓存状态，避免下一次写入被"内容未变"跳过
+      lastRaw = ''
+      pendingRaw = ''
     },
     // ---------- 备份 / 恢复 ----------
     exportAll() {
@@ -422,8 +441,34 @@ export const useFocusStore = defineStore('focus', {
         this.persist()
       }
     },
+    /**
+     * 落盘（带合并）。
+     * 记录是持续增长的最大一块数据，原先每次变更都全量 JSON.stringify。
+     * 策略：距上次写入超过 250ms 的"孤立操作"立即写入（保证单次专注记录不丢），
+     * 250ms 内的连续变更合并为一次尾随写入；内容与上次相同则直接跳过。
+     * App 退到后台时由 flush() 兜底，不会丢数据。
+     */
     persist() {
-      storage.set(K, JSON.stringify(this.records))
+      const raw = JSON.stringify(this.records)
+      const now = Date.now()
+      if (now - lastWriteAt > WRITE_GAP_MS) {
+        writeNow(raw)
+        return
+      }
+      pendingRaw = raw
+      if (writeTimer) clearTimeout(writeTimer)
+      writeTimer = setTimeout(() => {
+        writeTimer = null
+        writeNow(pendingRaw)
+      }, WRITE_GAP_MS)
+    },
+    /** 立即落盘（App 进后台 / 导出前调用），确保没有遗留的待写入变更 */
+    flush() {
+      if (writeTimer) {
+        clearTimeout(writeTimer)
+        writeTimer = null
+      }
+      writeNow(JSON.stringify(this.records))
     },
   },
 })
