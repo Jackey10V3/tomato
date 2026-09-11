@@ -176,15 +176,18 @@ page {
  *  3. 位移距离要小：列表项用 14rpx 的轻微下沉，块级卡片用 22rpx 的横向轻推，
  *     大距离滑入在反复切 tab 时会变成"弹幕"，非常吵。
  */
-.fade-row { animation: rowIn 0.3s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
+.fade-row { animation: rowIn 0.4s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
 @keyframes rowIn {
-  from { opacity: 0.5; transform: translateY(10rpx); }
+  /* 从左往右滑入：位移量加大到 26rpx、时长放到 0.4s，
+     让"滑入"能被明显感知（此前 10rpx/0.3s 观感像"震了一下"而不是动画）。
+     起点透明度仍保持 0.4+，避免缓存页重播时闪暗。 */
+  from { opacity: 0.4; transform: translateX(-26rpx); }
   to { opacity: 1; transform: none; }
 }
 
-.slide-in-left { animation: slideInLeft 0.32s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
+.slide-in-left { animation: slideInLeft 0.42s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
 @keyframes slideInLeft {
-  from { opacity: 0.5; transform: translateX(-14rpx); }
+  from { opacity: 0.4; transform: translateX(-34rpx); }
   to { opacity: 1; transform: none; }
 }
 

@@ -496,17 +496,22 @@ onUnload(() => {
 }
 
 /*
- * 横屏：计时环放左边、任务信息与按钮放右边。
+ * 横屏（平板）：计时环在左、任务信息与按钮在右，两栏收拢到屏幕中央
+ * （此前两栏各占一半、内容又各自居中，中间空出一大块，环也显得偏小偏角落）。
  * 竖着排时横屏高度（最小只有 390px）会把环和按钮挤在一起，环也放不下。
  */
 .screen.is-landscape {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
 }
 .screen.is-landscape .topbar { width: 100%; padding-bottom: 0; }
-.screen.is-landscape .center { flex: 1 1 44%; }
-.screen.is-landscape .bottom { flex: 1 1 44%; padding-right: 50rpx; }
-.screen.is-landscape .center .ring { width: 340rpx; height: 340rpx; }
-.screen.is-landscape .center .ring .time { font-size: 84rpx; }
+.screen.is-landscape .center { flex: 0 1 46%; min-width: 0; }
+.screen.is-landscape .bottom { flex: 0 1 46%; min-width: 0; padding-right: 0; }
+.screen.is-landscape .center .ring { width: 430rpx; height: 430rpx; }
+.screen.is-landscape .center .ring .time { font-size: 100rpx; }
+/* 平板宽屏下再放大一号，避免大屏上环显得小气 */
+.screen.is-wide.is-landscape .center .ring { width: 500rpx; height: 500rpx; }
+.screen.is-wide.is-landscape .center .ring .time { font-size: 116rpx; }
 </style>

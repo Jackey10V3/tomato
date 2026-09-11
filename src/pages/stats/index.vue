@@ -515,7 +515,10 @@ onShow(() => {
               :style="{ height: barH(v) + 'rpx', animationDelay: i * 22 + 'ms' }"
             />
           </view>
-          <view class="axis"><text>0</text><text>6</text><text>12</text><text>18</text><text>23 时</text></view>
+          <view class="axis">
+            <!-- 轴标签逐列对齐：每 6 小时一个刻度，"23 时"落在最后一列柱子正下方 -->
+            <text v-for="h in 24" :key="h" class="ax">{{ h === 1 ? '0' : h === 7 ? '6' : h === 13 ? '12' : h === 19 ? '18' : h === 24 ? '23时' : '' }}</text>
+          </view>
         </view>
         </view>
 
@@ -676,6 +679,7 @@ onShow(() => {
   opacity: 0.75;
   &.peak { opacity: 1; background: var(--p-primary, #e2475f); box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12); }
 }
-.axis { display: flex; justify-content: space-between; margin-top: 8rpx; font-size: 22rpx; color: var(--p-sub, #b39aa1); }
+.axis { display: flex; gap: 6rpx; margin-top: 8rpx; font-size: 20rpx; color: var(--p-sub, #b39aa1); }
+.ax { flex: 1; text-align: center; white-space: nowrap; }
 .stat-note { display: block; text-align: center; margin: 14rpx 0 10rpx; font-size: 22rpx; color: var(--p-sub, #bbb); }
 </style>
