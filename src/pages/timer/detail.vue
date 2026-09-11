@@ -242,7 +242,7 @@ onUnload(() => {
 
     <!-- 中央环 -->
     <view class="center">
-      <view class="ring" :class="{ breathe: running, paused: st.status === 'paused' }">
+      <view class="ring" :class="{ breathe: st.status !== 'idle', hold: st.status === 'paused', paused: st.status === 'paused' }">
         <view class="ring-prog" :style="progStyle" />
         <text class="time">{{ bigText }}</text>
         <text class="cap">{{ caption }}</text>
@@ -323,6 +323,19 @@ onUnload(() => {
   transition: background 0.4s;
 }
 .glow { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+/*
+ * 入场动画（二级页只在进入时挂载一次，从 0 淡入不会闪，这点和 tab 页不同）。
+ * 节奏参考主流专注类 App 的"分层错峰"：
+ *   语录先柔亮(0.15s 后) → 中央计时区轻缩浮现 → 底部操作区再上浮(0.12s 后)。
+ * 全部只动 opacity / transform，合成器直出，真机不掉帧。
+ */
+.topbar .quote { animation: softFade 0.6s ease-out 0.15s both; }
+.center { animation: zoneIn 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+.bottom { animation: riseIn 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) 0.12s both; }
+@keyframes softFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zoneIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(16rpx); } to { opacity: 1; transform: none; } }
+
 .topbar {
   position: relative;
   display: flex;
@@ -358,11 +371,14 @@ onUnload(() => {
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 60rpx rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(2rpx);
+    /* 不加 backdrop-filter：呼吸动画每帧缩放，模糊就得每帧重算（真机又卡又僵） */
     &.breathe { animation: breathe 5s ease-in-out infinite; }
+    /* 暂停不让呼吸"戛然而止"，而是把动作冻结在当前姿态（主流冥想/专注 App 的做法），恢复时原地继续 */
+    &.hold { animation-play-state: paused; }
     &.paused .ring-prog { opacity: 0.45; }
-    .time { font-size: 108rpx; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 2rpx; text-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.35); }
-    .cap { margin-top: 6rpx; font-size: 22rpx; color: rgba(255, 255, 255, 0.85); }
+    .time { font-size: 108rpx; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 2rpx; text-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.35); transition: opacity 0.3s ease; }
+    .cap { margin-top: 6rpx; font-size: 22rpx; color: rgba(255, 255, 255, 0.85); transition: opacity 0.3s ease; }
+    &.paused .time { opacity: 0.78; }
   }
   /* 进度弧：铺满整环，再用 mask 抠出与描边等宽的环带 */
   .ring-prog {
@@ -417,14 +433,14 @@ onUnload(() => {
   position: fixed; top: 0; right: 0; bottom: 0; left: 0;
   background: rgba(8, 6, 10, 0.55); z-index: 99;
   display: flex; align-items: center; justify-content: center; padding: 0 48rpx;
-  animation: fadeIn 0.18s ease;
+  animation: fadeIn 0.22s ease;
 }
 .pop-card {
   width: 100%; max-width: 600rpx;
   background: #fff; color: #333;
   border-radius: 30rpx; padding: 40rpx 34rpx 30rpx;
   display: flex; flex-direction: column; align-items: center; gap: 10rpx;
-  animation: popIn 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  animation: popIn 0.3s cubic-bezier(0.34, 1.28, 0.64, 1);
   box-shadow: 0 24rpx 70rpx rgba(0, 0, 0, 0.3);
 }
 .cf-emoji { font-size: 76rpx; }
@@ -446,6 +462,12 @@ onUnload(() => {
   .task-name { font-size: 40rpx; font-weight: 800; text-shadow: 0 3rpx 14rpx rgba(0, 0, 0, 0.3); }
   .status { font-size: 24rpx; color: rgba(255, 255, 255, 0.8); margin-top: 8rpx; }
   .controls { margin-top: 40rpx; display: flex; flex-direction: column; align-items: center; }
+  /* 状态切换（待开始 ⇄ 进行中 ⇄ 暂停）时按钮组整体淡入上浮，
+     v-if 换结构不可避免，但让"新的一组"柔和进场，而不是瞬间蹦出来 */
+  .pill-main,
+  .row {
+    animation: riseIn 0.28s cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
   .pill-main {
     background: #fff;
     color: var(--p-deep, #1a2a6c);
@@ -454,6 +476,8 @@ onUnload(() => {
     border-radius: 999rpx;
     padding: 20rpx 96rpx;
     box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+    &:active { transform: scale(0.96); }
   }
   .row { display: flex; gap: 48rpx; }
   .btn-sub {
@@ -462,8 +486,9 @@ onUnload(() => {
       width: 104rpx; height: 104rpx; border-radius: 50%;
       display: flex; align-items: center; justify-content: center; font-size: 42rpx;
       background: rgba(255, 255, 255, 0.16); border: 2rpx solid rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(4rpx);
+      transition: transform 0.15s ease, background 0.2s ease;
     }
+    &:active .e { transform: scale(0.9); }
     &.strong .e { background: rgba(255, 255, 255, 0.9); color: var(--p-deep, #1a2a6c); border: none; }
     &.ghost .e { background: rgba(0, 0, 0, 0.28); border: none; }
   }
