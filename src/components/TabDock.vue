@@ -80,13 +80,12 @@ const items = computed(() => TABS)
   align-items: center;
   padding: 10rpx 14rpx;
   border-radius: 999rpx;
-  /* 降低不透明度，让底色透出来，避免白色胶囊形成明显"白边" */
-  background: var(--p-glass-strong, rgba(255, 255, 255, 0.55));
+  background: rgba(255, 255, 255, 0.94);
   border: none;
   box-shadow: 0 14rpx 44rpx rgba(40, 20, 10, 0.16);
-  /* 全页只有这一个模糊层（面积小、常驻） */
-  backdrop-filter: blur(20rpx) saturate(150%);
-  -webkit-backdrop-filter: blur(20rpx) saturate(150%);
+  /* 注意：Dock 不加 backdrop-filter。它是常驻元素，切页/滚动时背景每帧都在变，
+     鸿蒙 ArkWeb 上模糊层就得每帧重算——这是"切页卡一下"的最后一个来源。
+     高不透明度底色 + 投影的观感足够接近玻璃，帧率优先。 */
   z-index: 90;
 }
 

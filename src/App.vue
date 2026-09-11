@@ -202,14 +202,16 @@ page {
  * ⚠️ 若改了 pages.json 里 tabBar 的 height，这里的 --t-tabbar-h 要同步。
  * =================================================================== */
 :root {
-  /* 底部悬浮 Dock（components/TabDock）的占位：
-     原生 tabBar 已通过 hideTabBar 隐藏， Dock 本体约 96rpx + 距底 16rpx + 安全区。
-     统一按 px 预留（不再区分 H5/原生），内容区滚动到底也不会被 Dock 压住。 */
-  --t-tabbar-h: calc(78px + env(safe-area-inset-bottom, 0px));
+  /* 底部悬浮 Dock（components/TabDock）的占位。
+     页面本身铺满 100vh（背景一直画到屏幕底，Dock 下方不会露出白色空档），
+     这个高度改为滚动内容末尾 .t-bottom-space 的留白，防止最后一项被 Dock 压住。 */
+  --t-dock-h: calc(150rpx + env(safe-area-inset-bottom, 0px));
 }
 
 .screen.t-page {
-  height: calc(100vh - var(--t-tabbar-h, 0px));
+  /* 铺满整个视口：页面渐变背景覆盖到屏幕最底，
+     否则底部给 Dock 预留的空档会露出页面容器的白底，看着像"没隐藏的底栏"。 */
+  height: 100vh;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -260,7 +262,9 @@ page {
 .t-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .t-row-title { font-size: 30rpx; }
 .t-row-desc { font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
-.t-bottom-space { flex-shrink: 0; height: 60rpx; }
+/* 滚动内容末尾的 Dock 留白：页面铺满全屏后，Dock 悬浮在内容上，
+   留白保证滚到底时最后一项能完整滚出 Dock 覆盖区 */
+.t-bottom-space { flex-shrink: 0; height: var(--t-dock-h, 150rpx); }
 
 /* ===================================================================
  * 宽屏适配（平板 / 横屏 / 桌面）
@@ -357,7 +361,8 @@ page {
 .screen.is-landscape .t-hero { padding-top: 6rpx; padding-bottom: 12rpx; }
 .screen.is-landscape .t-hero-title { font-size: 34rpx; }
 .screen.is-landscape .t-hero-sub { font-size: 20rpx; }
-.screen.is-landscape .t-bottom-space { height: 32rpx; }
+/* 横屏 Dock 仍然悬浮在底部，留白只稍微收紧，不能小到让最后一项压在 Dock 下 */
+.screen.is-landscape .t-bottom-space { height: calc(120rpx + env(safe-area-inset-bottom, 0px)); }
 /* 横屏高度小，弹层若超高会让底部按钮点不到，改为内部滚动 */
 .screen.is-landscape .pop-card { max-height: 84vh; overflow-y: auto; }
 

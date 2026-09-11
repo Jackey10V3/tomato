@@ -47,7 +47,10 @@ function restartAnimations(): boolean {
 
     let hit = false
     for (let i = 0; i < els.length; i++) {
-      const el = els[i] as Element & { getAnimations?: () => Animation[] }
+      const el = els[i] as Element & { getAnimations?: () => Animation[]; clientWidth?: number }
+      // uni-app 会把切走的 tab 页缓存在文档里（display:none）。
+      // 这些隐藏页面上的动画对象依然查得到，重播它们纯属浪费——只处理当前可见页面。
+      if (typeof el.clientWidth === 'number' && el.clientWidth === 0) continue
       if (typeof el.getAnimations !== 'function') continue
       const anims = el.getAnimations()
       if (!anims || !anims.length) continue

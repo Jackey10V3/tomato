@@ -94,30 +94,15 @@
     "rpxCalcBaseDeviceWidth": 480
   },
   "tabBar": {
-    "color": "#909399",
-    "selectedColor": "#E53935",
+    "color": "#FBF3F3",
+    "selectedColor": "#FBF3F3",
     "backgroundColor": "#FBF3F3",
     "borderStyle": "white",
-    "height": "52px",
+    "height": "24px",
     "list": [
-      {
-        "pagePath": "pages/task/index",
-        "text": "待办",
-        "iconPath": "static/tab/todo.png",
-        "selectedIconPath": "static/tab/todo-on.png"
-      },
-      {
-        "pagePath": "pages/stats/index",
-        "text": "统计数据",
-        "iconPath": "static/tab/charts.png",
-        "selectedIconPath": "static/tab/charts-on.png"
-      },
-      {
-        "pagePath": "pages/mine/index",
-        "text": "我的",
-        "iconPath": "static/tab/me.png",
-        "selectedIconPath": "static/tab/me-on.png"
-      }
+      { "pagePath": "pages/task/index" },
+      { "pagePath": "pages/stats/index" },
+      { "pagePath": "pages/mine/index" }
     ]
   }
 }
