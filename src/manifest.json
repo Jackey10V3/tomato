@@ -1,70 +1,66 @@
 {
-  "name": "番茄Todo",
-  "appid": "__UNI__B22C10E",
-  "description": "番茄工作法 + 任务清单 + 专注统计 + 白噪音 + 线上自习室",
-  "versionName": "0.1.0",
-  "versionCode": "100",
-  "vueVersion": "3",
-  "locale": "zh-Hans",
-  "app-plus": {
-    "usingComponents": true,
-    "nvueStyleCompiler": "uni-app",
-    "compilerVersion": 3,
-    "splashscreen": {
-      "alwaysShowBeforeRender": true,
-      "waiting": true,
-      "autoclose": true,
-      "delay": 0
+    "name" : "番茄Todo",
+    "appid" : "__UNI__B22C10E",
+    "description" : "番茄工作法 + 任务清单 + 专注统计 + 白噪音 + 线上自习室",
+    "versionName" : "0.1.0",
+    "versionCode" : "100",
+    "vueVersion" : "3",
+    "locale" : "zh-Hans",
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {
+            "Push" : {},
+            "SQLite" : {}
+        },
+        "distribute" : {
+            "android" : {
+                "minSdkVersion" : 23,
+                "targetSdkVersion" : 34,
+                "abiFilters" : [ "arm64-v8a" ],
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>",
+                    "<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_SPECIAL_USE\"/>",
+                    "<uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\"/>",
+                    "<uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>",
+                    "<uses-permission android:name=\"android.permission.PACKAGE_USAGE_STATS\" tools:ignore=\"ProtectedPermissions\"/>",
+                    "<uses-permission android:name=\"android.permission.SCHEDULE_EXACT_ALARM\"/>",
+                    "<uses-permission android:name=\"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\"/>"
+                ]
+            },
+            "ios" : {},
+            "sdkConfigs" : {}
+        }
     },
-    "modules": {
-      "Push": {},
-      "SQLite": {}
+    "h5" : {
+        "router" : {
+            "mode" : "hash"
+        },
+        "title" : "番茄Todo"
     },
-    "distribute": {
-      "android": {
-        "minSdkVersion": 23,
-        "targetSdkVersion": 34,
-        "abiFilters": [
-          "arm64-v8a"
-        ],
-        "permissions": [
-          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
-          "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
-          "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
-          "<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>",
-          "<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_SPECIAL_USE\"/>",
-          "<uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\"/>",
-          "<uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>",
-          "<uses-permission android:name=\"android.permission.PACKAGE_USAGE_STATS\" tools:ignore=\"ProtectedPermissions\"/>",
-          "<uses-permission android:name=\"android.permission.SCHEDULE_EXACT_ALARM\"/>",
-          "<uses-permission android:name=\"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\"/>"
-        ]
-      },
-      "ios": {},
-      "sdkConfigs": {}
+    "quickapp" : {},
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "app-harmony" : {
+        "distribute" : {
+            "bundleName" : "com.jackey.tomato",
+            "signingConfigs" : {},
+            "deviceTypes" : [ "phone", "tablet", "2in1" ]
+        }
     }
-  },
-  "h5": {
-    "router": {
-      "mode": "hash"
-    },
-    "title": "番茄Todo"
-  },
-  "quickapp": {},
-  "mp-weixin": {
-    "appid": "",
-    "setting": {
-      "urlCheck": false
-    },
-    "usingComponents": true
-  },
-  "app-harmony": {
-    "distribute": {
-      "bundleName": "",
-      "signingConfigs": {}
-    }
-  },
-  "uniStatistics": {
-    "enable": false
-  }
 }

@@ -1,0 +1,50 @@
+{
+  // 鸿蒙权限声明（此文件会在构建阶段覆盖到自动生成的鸿蒙工程 entry/src/main/module.json5）
+  // 内容 = HBuilderX 生成版 + 下面这条振动权限；改动时请以生成版为基准重新比对，避免漏掉模板新增字段。
+  "module": {
+    "name": "entry",
+    "type": "entry",
+    "description": "$string:module_desc",
+    "mainElement": "EntryAbility",
+    "deviceTypes": [
+      "phone",
+      "tablet",
+      "2in1"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "EntryAbility",
+        "srcEntry": "./ets/entryability/EntryAbility.ets",
+        "description": "$string:EntryAbility_desc",
+        "icon": "$media:layered_image",
+        "label": "$string:EntryAbility_label",
+        "startWindowIcon": "$media:startIcon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true,
+        "skills": [
+          {
+            "entities": [
+              "entity.system.home"
+            ],
+            "actions": [
+              "action.system.home"
+            ]
+          }
+        ]
+      }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET"
+      },
+      {
+        // 振动反馈（开始/完成/警告）：不加这条系统会静默忽略 uni.vibrateShort，表现为"手机没震动"
+        "name": "ohos.permission.VIBRATE"
+      }
+    ],
+    "metadata": []
+  }
+}
