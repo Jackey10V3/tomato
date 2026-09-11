@@ -252,6 +252,8 @@ onUnload(() => {
       <view class="bar-right" />
     </view>
 
+    <!-- 横屏：中央环与底部操作区放进同一容器，垂直居中于剩余空间 -->
+    <view class="landscape-body">
     <!-- 中央环 -->
     <view class="center">
       <view class="ring" :class="{ breathe: st.status !== 'idle', hold: st.status === 'paused', paused: st.status === 'paused' }">
@@ -299,6 +301,8 @@ onUnload(() => {
         </template>
       </view>
     </view>
+    </view>
+    <!-- /landscape-body -->
 
     <!-- 结束 / 放弃 二次确认 -->
     <view v-if="confirmMode" class="pop-mask" @click="cancelConfirm">
@@ -507,21 +511,32 @@ onUnload(() => {
   .end-link { margin-top: 24rpx; font-size: 24rpx; color: rgba(255, 255, 255, 0.85); text-decoration: underline; }
 }
 
+/* 中央环 + 操作区的共同容器：竖屏时纵向排（环 flex:1 撑满中间），横屏时转横向居中 */
+.landscape-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /*
- * 横屏（平板）：计时环在左、任务信息与按钮在右。
- * 两栏按内容自适应宽度（flex-basis auto），中间留固定间距，整组由 justify-content 居中 ——
- * 此前各占 46% 宽，内容虽然在各栏内居中，但栏本身分居屏幕两侧，中间空一大块，观感就是"没居中"。
+ * 横屏（平板）：顶栏贴顶，下方一个横向容器居中"计时环 + 操作区"两栏。
+ * 不能用 flex-wrap 两行 + align-items:center：align-content 默认 stretch 会把剩余高度
+ * 平分给两行，顶栏行被撑到半屏高，返回键/语录就被垂直居中到屏幕中部（真机踩过）。
  * 竖着排时横屏高度（最小只有 390px）会把环和按钮挤在一起，环也放不下。
  */
 .screen.is-landscape {
+  flex-direction: column;
+}
+.screen.is-landscape .topbar { width: 100%; padding-bottom: 0; }
+.screen.is-landscape .landscape-body {
   flex-direction: row;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }
-.screen.is-landscape .topbar { width: 100%; padding-bottom: 0; }
-.screen.is-landscape .center { flex: 0 0 auto; }
-.screen.is-landscape .bottom { flex: 0 0 auto; margin-left: 9%; margin-right: 4%; }
+/* 两栏按内容自适应宽度，中间留固定间距，整组居中 */
+.screen.is-landscape .landscape-body .center { flex: 0 0 auto; }
+.screen.is-landscape .landscape-body .bottom { flex: 0 0 auto; margin-left: 9%; margin-right: 4%; }
 .screen.is-landscape .center .ring { width: 430rpx; height: 430rpx; }
 .screen.is-landscape .center .ring .time { font-size: 100rpx; }
 /* 平板宽屏下再放大一号，避免大屏上环显得小气 */
