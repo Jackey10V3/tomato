@@ -8,6 +8,8 @@ import { useFocusStore } from '@/store/modules/focus'
 import { useAuthStore } from '@/store/modules/auth'
 import { useChrome } from '@/composables/usePageChrome'
 import { useEnterAnim } from '@/composables/useEnterAnim'
+import { usePageError } from '@/composables/usePageError'
+import PageError from '@/components/PageError.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
 import { buildBackup, parseBackup } from '@/utils/backup'
 import { MOTIVATIONS } from '@/utils/constant'
@@ -20,6 +22,8 @@ const auth = useAuthStore()
 const { statusBarH } = useChrome()
 // 每次切回本页都重播内容入场动画
 const { animKey } = useEnterAnim()
+/** 渲染出错时显示错误卡而不是白屏 */
+const { pageError, copyErr, dismiss: dismissErr } = usePageError('mine-page')
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const poster = computed(() => posterBg(settings.s.poster))
 const slogan = ref(MOTIVATIONS[(Math.random() * MOTIVATIONS.length) | 0])
@@ -158,6 +162,7 @@ onShow(() => {
 
     <scroll-view scroll-y class="t-body">
       <view :key="animKey">
+        <PageError v-if="pageError" :message="pageError" @copy="copyErr" @dismiss="dismissErr" />
           <!-- 三宫格 -->
         <view class="t-card grid-card slide-in-left mine-delay-1">
           <view class="grid-item press" @click="go('/pages/mine/achievements')"><text class="g-ico gold">🏆</text><text class="g-name">成就与等级</text></view>

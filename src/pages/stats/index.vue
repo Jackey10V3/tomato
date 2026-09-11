@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 统计数据：与主界面统一风格（粉顶 + 渐变强调卡 + 彩色环形 + 药丸图例） */
-import { computed, ref, watch, onErrorCaptured } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useFocusStore, countsInStats } from '@/store/modules/focus'
 import { useTaskStore } from '@/store/modules/task'
@@ -8,9 +8,10 @@ import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
 import { useCountUp } from '@/composables/useCountUp'
 import { useEnterAnim } from '@/composables/useEnterAnim'
+import { usePageError } from '@/composables/usePageError'
 import { themeStyle, posterBg, chartPalette, buildTodoColorMap } from '@/utils/theme'
-import { logError } from '@/utils/debugLog'
 import { mondayKey, parseDateKey } from '@/utils/date'
+import PageError from '@/components/PageError.vue'
 import type { FocusRecord } from '@/types/focus'
 
 const store = useFocusStore()
@@ -18,19 +19,8 @@ const taskStore = useTaskStore()
 const settings = useSettingsStore()
 const { statusBarH } = useChrome()
 const { animKey } = useEnterAnim()
-/** 渲染出错时不再白屏：把错误显示出来，便于定位 */
-const pageError = ref('')
-onErrorCaptured(e => {
-  pageError.value = String((e as Error)?.message || e)
-  logError('stats-page', e)
-  return false
-})
-function copyErr() {
-  uni.setClipboardData({
-    data: `stats error: ${pageError.value}`,
-    success: () => uni.showToast({ title: '已复制错误', icon: 'none' }),
-  })
-}
+/** 渲染出错时不再白屏（公共兜底，与待办 / 我的页一致） */
+const { pageError, copyErr, dismiss: dismissErr } = usePageError('stats-page')
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const poster = computed(() => posterBg(settings.s.poster))
 
@@ -386,12 +376,8 @@ onShow(() => {
 
 <template>
   <view class="screen t-page" :style="[style, { background: poster }]">
-    <!-- 渲染异常时显示错误而不是白屏 -->
-    <view v-if="pageError" class="err-card">
-      <text class="err-t">统计页出错了</text>
-      <text class="err-m">{{ pageError }}</text>
-      <view class="pill err-btn" @click="copyErr"><text>复制错误信息</text></view>
-    </view>
+    <!-- 渲染异常时显示错误卡而不是白屏（公共组件，与待办/我的页一致） -->
+    <PageError v-if="pageError" :message="pageError" @copy="copyErr" @dismiss="dismissErr" />
 
     <!-- 顶部（与首页同款：浅粉铺满 + 深色标题） -->
     <view class="t-hero" :style="{ paddingTop: statusBarH + 'px' }">
@@ -652,7 +638,7 @@ onShow(() => {
   white-space: nowrap;
   max-width: 150rpx;
 }
-.pl-time { font-size: 19rpx; color: var(--p-sub, #999); white-space: nowrap; }
+.pl-time { font-size: 22rpx; color: var(--p-sub, #999); white-space: nowrap; }
 .total-line { margin-top: 18rpx; font-size: 26rpx; color: #e2475f; font-weight: 700; }
 .chips { width: 100%; margin-top: 22rpx; display: flex; flex-direction: column; gap: 12rpx; }
 .chip-row {
@@ -681,11 +667,6 @@ onShow(() => {
   opacity: 0.75;
   &.peak { opacity: 1; background: var(--p-primary, #e2475f); box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12); }
 }
-.axis { display: flex; justify-content: space-between; margin-top: 8rpx; font-size: 18rpx; color: var(--p-sub, #b39aa1); }
-.stat-note { display: block; text-align: center; margin: 14rpx 0 10rpx; font-size: 19rpx; color: var(--p-sub, #bbb); }
-/* 错误提示卡（避免白屏） */
-.err-card { margin: 16rpx 24rpx; background: #fff3f3; border: 2rpx solid #f3c2c2; border-radius: 22rpx; padding: 24rpx; display: flex; flex-direction: column; gap: 10rpx; }
-.err-t { font-size: 28rpx; font-weight: 800; color: #c0392b; }
-.err-m { font-size: 22rpx; color: #8a5a55; word-break: break-all; }
-.err-btn { margin-top: 8rpx; align-self: flex-start; padding: 0 36rpx; height: 72rpx; font-size: 24rpx; }
+.axis { display: flex; justify-content: space-between; margin-top: 8rpx; font-size: 22rpx; color: var(--p-sub, #b39aa1); }
+.stat-note { display: block; text-align: center; margin: 14rpx 0 10rpx; font-size: 22rpx; color: var(--p-sub, #bbb); }
 </style>

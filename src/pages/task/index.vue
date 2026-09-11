@@ -10,9 +10,13 @@ import { useFocusStore, MIN_STAT_SEC } from '@/store/modules/focus'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
 import { useEnterAnim } from '@/composables/useEnterAnim'
+import { usePageError } from '@/composables/usePageError'
+import PageError from '@/components/PageError.vue'
 import { themeStyle, posterBg, todoPalette, buildTodoColorMap, colorGradient, hashStr, pickerPalette, normalizeHex } from '@/utils/theme'
+import { PRIORITY_META, PRIORITY_OPTIONS } from '@/utils/constant'
+import TagSelect from '@/components/TagSelect.vue'
 import { storage } from '@/utils/storage'
-import type { Task } from '@/types/task'
+import type { Task, Priority } from '@/types/task'
 
 const store = useTaskStore()
 const focusStore = useFocusStore()
@@ -20,6 +24,8 @@ const settings = useSettingsStore()
 const { statusBarH } = useChrome()
 // 每次切回本页都重播卡片入场动画（原来只在首次进入时播一次）
 const { animKey } = useEnterAnim()
+/** 渲染出错时显示错误卡而不是白屏 */
+const { pageError, copyErr, dismiss: dismissErr } = usePageError('task-page')
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 
 const todos = computed(() =>
@@ -103,6 +109,8 @@ const form = reactive({
   minutePick: '30' as '30' | '60' | 'custom',
   customMin: '',
   color: '',
+  priority: 2 as Priority,
+  tags: [] as string[],
 })
 const minuteOptions = [
   { v: '30', label: '30 分钟' },
@@ -134,6 +142,23 @@ function pickColor(c: string) {
   customColor.value = c
 }
 
+// ---------- 优先级 / 标签 ----------
+/** 可选标签 = 全库已有标签 ∪ 当前正在编辑的标签（保证老标签不会丢） */
+const tagOptions = computed(() => [...new Set<string>([...store.tags, ...form.tags])])
+const newTag = ref('')
+function addTag() {
+  const t = newTag.value.trim().replace(/^#/, '').slice(0, 8)
+  if (!t) return
+  if (!form.tags.includes(t)) {
+    if (form.tags.length >= 3) {
+      uni.showToast({ title: '最多 3 个标签', icon: 'none' })
+      return
+    }
+    form.tags.push(t)
+  }
+  newTag.value = ''
+}
+
 function openAdd() {
   editingId.value = null
   form.title = ''
@@ -141,6 +166,9 @@ function openAdd() {
   form.minutePick = '30'
   form.customMin = ''
   form.color = ''
+  form.priority = 2
+  form.tags = []
+  newTag.value = ''
   showCard.value = true
 }
 function openEdit(t: Task) {
@@ -150,6 +178,9 @@ function openEdit(t: Task) {
   form.minutePick = t.mode === 'countup' ? '30' : t.minutes === 60 ? '60' : 'custom'
   form.customMin = String(t.minutes > 0 && t.minutes !== 60 ? t.minutes : '')
   form.color = t.color || ''
+  form.priority = t.priority ?? 2
+  form.tags = [...(t.tags || [])]
+  newTag.value = ''
   showCard.value = true
 }
 function closeCard() {
@@ -178,10 +209,10 @@ function save() {
     }
   }
   if (editingId.value) {
-    store.update(editingId.value, { title, mode, minutes, color: form.color || undefined })
+    store.update(editingId.value, { title, mode, minutes, color: form.color || undefined, priority: form.priority, tags: [...form.tags] })
     uni.showToast({ title: '已保存', icon: 'success' })
   } else {
-    store.addToList('today', { title, mode, minutes, color: form.color || undefined })
+    store.addToList('today', { title, mode, minutes, color: form.color || undefined, priority: form.priority, tags: [...form.tags] })
     uni.showToast({ title: '已添加待办', icon: 'success' })
   }
   showCard.value = false
@@ -327,6 +358,7 @@ onShow(() => {
     <!-- 列表 -->
     <scroll-view scroll-y class="t-body">
       <view :key="animKey">
+        <PageError v-if="pageError" :message="pageError" @copy="copyErr" @dismiss="dismissErr" />
         <!-- 考研倒计时卡片（长按编辑名称与时间） -->
         <view class="exam-card fade-row" @click="openExamEdit" @longpress="openExamEdit">
           <view class="exam-in">
@@ -405,6 +437,27 @@ onShow(() => {
           </view>
           <input v-if="form.minutePick === 'custom'" v-model="form.customMin" class="custom-min" type="number" placeholder="自定义分钟数，如 45" :placeholder-style="'color:#c9c2bc'" />
         </template>
+
+        <text class="sec-label">优先级</text>
+        <view class="pri-row">
+          <view
+            v-for="p in PRIORITY_OPTIONS"
+            :key="p"
+            class="pri-chip"
+            :class="{ on: form.priority === p }"
+            :style="form.priority === p ? { borderColor: PRIORITY_META[p].color, color: PRIORITY_META[p].color } : {}"
+            @click="form.priority = p"
+          >
+            {{ p === 0 ? '无' : PRIORITY_META[p].label }}
+          </view>
+        </view>
+
+        <text class="sec-label">标签（最多 3 个）</text>
+        <TagSelect v-if="tagOptions.length" v-model="form.tags" :options="tagOptions" :max="3" />
+        <view class="tag-add">
+          <input v-model="newTag" class="tag-input" placeholder="新标签，如 考研" :placeholder-style="'color:#c9c2bc'" @confirm="addTag" />
+          <view class="tag-btn" @click="addTag">添加</view>
+        </view>
 
         <text class="sec-label">卡片颜色</text>
         <view class="color-row">
@@ -579,8 +632,28 @@ onShow(() => {
 .todo.popping { animation: cardPop 0.28s cubic-bezier(0.3, 1.2, 0.4, 1); }
 .t-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
 .t-title { font-size: 32rpx; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1rpx 3rpx rgba(0,0,0,0.12); }
+/* 元信息行：卡片是彩色渐变，所以优先级/标签用半透明白底，任何配色下都能看清 */
+.t-meta { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; }
 .t-min { font-size: 24rpx; opacity: 0.92; }
-.t-times { font-size: 20rpx; opacity: 0.9; }
+.t-pri {
+  font-size: 22rpx;
+  line-height: 1.5;
+  padding: 0 12rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+  &.high { color: #d32f2f; }
+  &.low { color: #78909c; }
+}
+.t-tag {
+  font-size: 22rpx;
+  line-height: 1.5;
+  padding: 0 12rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.26);
+  color: #fff;
+}
+.t-times { font-size: 22rpx; opacity: 0.9; }
 .t-start {
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.9);
@@ -620,6 +693,38 @@ onShow(() => {
 .min-chips { display: flex; gap: 14rpx; }
 .min-chip { flex: 1; text-align: center; padding: 16rpx 0; border-radius: 16rpx; background: var(--p-soft, #f6f3f0); font-size: 26rpx; &.on { background: var(--p-soft, #ffeceb); color: var(--p-primary, #e53935); font-weight: 700; border: 2rpx solid var(--p-primary, #e53935); } }
 .custom-min { margin-top: 16rpx; background: var(--p-soft, #f6f3f0); border-radius: 16rpx; padding: 16rpx 22rpx; font-size: 28rpx; color: var(--p-text, #333); }
+/* ---------- 优先级 / 标签（编辑弹层） ---------- */
+.pri-row { display: flex; gap: 14rpx; }
+.pri-chip {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  color: var(--p-sub, #999);
+  background: var(--p-soft, #f6f3f0);
+  border: 2rpx solid transparent;
+  &.on { background: var(--p-card, #fff); font-weight: 700; }
+}
+.tag-add { display: flex; align-items: center; gap: 14rpx; margin-top: 16rpx; }
+.tag-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--p-soft, #f6f3f0);
+  border-radius: 14rpx;
+  padding: 14rpx 20rpx;
+  font-size: 26rpx;
+  color: var(--p-text, #333);
+}
+.tag-btn {
+  flex-shrink: 0;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--p-primary, #e53935);
+  background: var(--p-soft, #ffeceb);
+}
 /* ---------- 卡片颜色选择 ----------
    注意：这套样式原先整个缺失，色块没有宽高＝零尺寸，
    表现为"看不到也不能选颜色"。 */
