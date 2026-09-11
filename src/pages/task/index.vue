@@ -395,7 +395,13 @@ onShow(() => {
           >
             <view class="t-main">
               <text class="t-title">{{ t.title }}</text>
-              <text class="t-min">{{ t.mode === 'countdown' ? `${t.minutes} 分钟` : '正向计时' }}</text>
+              <!-- 元信息行：时长 + 优先级（只标出高/低，默认"中"不显示以免噪音）+ 标签 -->
+              <view class="t-meta">
+                <text class="t-min">{{ t.mode === 'countdown' ? `${t.minutes} 分钟` : '正向计时' }}</text>
+                <text v-if="t.priority === 3" class="t-pri high">高</text>
+                <text v-else-if="t.priority === 1" class="t-pri low">低</text>
+                <text v-for="tag in t.tags.slice(0, 2)" :key="tag" class="t-tag">#{{ tag }}</text>
+              </view>
               <text v-if="todayCountMap[t._id]" class="t-times">今日已专注 {{ todayCountMap[t._id] }} 次</text>
             </view>
             <view class="t-start" @click.stop="openTimer(t)">开始</view>
