@@ -6,6 +6,7 @@ import { useTimer } from '@/composables/useTimer'
 import { useTaskStore } from '@/store/modules/task'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { platform } from '@/platform'
 import { themeStyle, mixHex, buildTodoColorMap } from '@/utils/theme'
 import { MOTIVATIONS } from '@/utils/constant'
@@ -16,6 +17,7 @@ const store = useTaskStore()
 const settings = useSettingsStore()
 const timer = useTimer()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 
 const st = timer.st
@@ -222,7 +224,7 @@ onUnload(() => {
 </script>
 
 <template>
-  <view class="screen deep" :style="[style, { paddingTop: statusBarH + 'px' }, accent ? { background: accent } : {}]">
+  <view class="screen deep" :class="layoutClass" :style="[style, { paddingTop: statusBarH + 'px' }, accent ? { background: accent } : {}]">
     <!-- 背景光晕（跟随该待办的专属色，进一步区分不同专注） -->
     <view
       class="glow"
@@ -467,4 +469,19 @@ onUnload(() => {
   }
   .end-link { margin-top: 24rpx; font-size: 24rpx; color: rgba(255, 255, 255, 0.85); text-decoration: underline; }
 }
+
+/*
+ * 横屏：计时环放左边、任务信息与按钮放右边。
+ * 竖着排时横屏高度（最小只有 390px）会把环和按钮挤在一起，环也放不下。
+ */
+.screen.is-landscape {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.screen.is-landscape .topbar { width: 100%; padding-bottom: 0; }
+.screen.is-landscape .center { flex: 1 1 44%; }
+.screen.is-landscape .bottom { flex: 1 1 44%; padding-right: 50rpx; }
+.screen.is-landscape .center .ring { width: 340rpx; height: 340rpx; }
+.screen.is-landscape .center .ring .time { font-size: 84rpx; }
 </style>

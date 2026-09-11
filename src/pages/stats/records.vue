@@ -5,6 +5,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { useFocusStore, MIN_STAT_SEC, isTooShort } from '@/store/modules/focus'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { themeStyle, posterBg } from '@/utils/theme'
 import { dateTimeKey, formatMs } from '@/utils/date'
@@ -13,6 +14,7 @@ import type { FocusRecord } from '@/types/focus'
 const store = useFocusStore()
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const { animKey } = useEnterAnim()
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const poster = computed(() => posterBg(settings.s.poster))
@@ -42,6 +44,31 @@ const list = computed(() => {
   if (filter.value === 'giveup') return all.filter(r => r.result === 'giveup' || r.result === 'abandoned')
   return all
 })
+
+/**
+ * 入场动画只作用于前若干条。
+ * 记录多时（几百上千条）如果每条都挂 animation，切页时要同时创建上百个动画层，
+ * 这是"切换页面卡一下"的主要来源；后面的条目直接跳过动画。
+ */
+const ENTER_MAX = 12
+
+/**
+ * 分页渲染：一次只铺 PAGE_SIZE 条，滚动到底再追加。
+ * 原来是把全部记录一次性渲染出来，记录一多首屏就会明显卡顿。
+ */
+const PAGE_SIZE = 60
+const shownCount = ref(PAGE_SIZE)
+const pagedList = computed(() => list.value.slice(0, shownCount.value))
+const hasMore = computed(() => list.value.length > shownCount.value)
+const restCount = computed(() => Math.max(0, list.value.length - shownCount.value))
+function loadMore() {
+  if (hasMore.value) shownCount.value += PAGE_SIZE
+}
+/** 切换筛选时回到第一页，否则会出现"筛完只剩几条却停在第二页"的错觉 */
+function setFilter(k: Filter) {
+  filter.value = k
+  shownCount.value = PAGE_SIZE
+}
 
 const totalShown = computed(() => {
   const minutes = list.value
@@ -80,7 +107,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="screen" :style="[style, { background: poster }]">
+  <view class="screen" :class="layoutClass" :style="[style, { background: poster }]">
     <view class="t-header" :style="hdrStyle">
       <text class="t-back" @click="goBack">←</text>
       <text class="t-title">专注记录</text>
@@ -88,17 +115,18 @@ onShow(() => {
     </view>
 
     <view class="filters">
-      <view v-for="f in FILTERS" :key="f.k" class="f press" :class="{ on: filter === f.k }" @click="filter = f.k">{{ f.label }}</view>
+      <view v-for="f in FILTERS" :key="f.k" class="f press" :class="{ on: filter === f.k }" @click="setFilter(f.k)">{{ f.label }}</view>
     </view>
     <text class="sum">{{ totalShown }}</text>
 
-    <scroll-view scroll-y class="body">
+    <scroll-view scroll-y class="body" @scrolltolower="loadMore">
       <view :key="animKey" class="rec-list">
         <!-- key 里带上筛选维度：切换「全部/完成/放弃」时列表重播入场动画 -->
         <view
-          v-for="(r, i) in list"
+          v-for="(r, i) in pagedList"
           :key="filter + '-' + r._id"
           class="rec fade-row press"
+          :class="{ 'no-enter': i >= ENTER_MAX }"
           :style="{ animationDelay: Math.min(i * 28, 300) + 'ms' }"
           @longpress="del(r)"
         >
@@ -113,11 +141,20 @@ onShow(() => {
           </view>
         </view>
 
-        <view v-if="!list.length" class="empty">
+        <view v-if="!pagedList.length" class="empty">
           <text class="emoji">📭</text>
           <text>{{ filter === 'all' ? '还没有记录，去待办开始一次专注吧' : '这个筛选下暂时没有记录' }}</text>
           <text class="sub">单次专注满 3 分钟才会计入统计</text>
         </view>
+
+        <!-- 还有更多：点一下追加，避免一次渲染上千行 -->
+        <view v-if="hasMore" class="more press" @click="loadMore">
+          <text>加载更多（还有 {{ restCount }} 条）</text>
+        </view>
+        <view v-if="!hasMore && pagedList.length > PAGE_SIZE" class="more done">
+          <text>已显示全部 {{ list.length }} 条</text>
+        </view>
+
         <view class="tip">长按任意记录可删除</view>
         <view class="bottom-space" />
       </view>
@@ -151,5 +188,16 @@ onShow(() => {
 .sub { font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
 .empty { display: flex; flex-direction: column; align-items: center; gap: 12rpx; margin-top: 160rpx; color: var(--p-sub, #999); font-size: 26rpx; .emoji { font-size: 80rpx; } .sub { font-size: 22rpx; color: var(--p-sub, #bbb); } }
 .tip { text-align: center; font-size: 22rpx; color: var(--p-sub, #bbb); margin-top: 16rpx; }
+.more {
+  margin: 20rpx auto 0;
+  width: fit-content;
+  padding: 14rpx 40rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: var(--p-primary, #e53935);
+  background: var(--p-soft, #fdecef);
+  border: 2rpx solid var(--p-border, #f3e7ea);
+  &.done { color: var(--p-sub, #bbb); background: transparent; border-color: transparent; }
+}
 .bottom-space { height: 80rpx; }
 </style>

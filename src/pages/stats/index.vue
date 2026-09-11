@@ -6,6 +6,7 @@ import { useFocusStore, countsInStats } from '@/store/modules/focus'
 import { useTaskStore } from '@/store/modules/task'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { useCountUp } from '@/composables/useCountUp'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
@@ -18,6 +19,7 @@ const store = useFocusStore()
 const taskStore = useTaskStore()
 const settings = useSettingsStore()
 const { statusBarH } = useChrome()
+const { layoutClass } = useResponsive()
 const { animKey } = useEnterAnim()
 /** 渲染出错时不再白屏（公共兜底，与待办 / 我的页一致） */
 const { pageError, copyErr, dismiss: dismissErr } = usePageError('stats-page')
@@ -375,7 +377,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="screen t-page" :style="[style, { background: poster }]">
+  <view class="screen t-page" :class="layoutClass" :style="[style, { background: poster }]">
     <!-- 渲染异常时显示错误卡而不是白屏（公共组件，与待办/我的页一致） -->
     <PageError v-if="pageError" :message="pageError" @copy="copyErr" @dismiss="dismissErr" />
 
@@ -396,6 +398,8 @@ onShow(() => {
 
     <scroll-view scroll-y class="t-body">
       <view :key="animKey">
+        <!-- 宽屏（.is-2col）下这里会变成两栏，见 App.vue 的 .t-flow -->
+        <view class="t-flow">
         <!-- 累计专注（渐变强调卡） -->
         <view class="total-card fade-row">
           <view class="tc-head"><text class="tc-title">累计专注</text><text class="tc-ico">📈</text></view>
@@ -509,6 +513,7 @@ onShow(() => {
             />
           </view>
           <view class="axis"><text>0</text><text>6</text><text>12</text><text>18</text><text>23 时</text></view>
+        </view>
         </view>
 
         <text class="stat-note">* 单次专注低于 3 分钟不计入统计（仍保留在专注记录里）</text>

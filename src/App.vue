@@ -163,22 +163,27 @@ page {
  *     正确做法是重建内容节点（见 useEnterAnim 的 animKey），新旧节点在同一帧交替，
  *     动画从头播放且不会被打断。
  * =================================================================== */
-.fade-row { animation: rowIn 0.42s cubic-bezier(0.22, 0.8, 0.3, 1) both; }
+/*
+ * 入场动画（柔和版）。
+ *
+ * 三个必须遵守的约束，都是踩过的坑：
+ *  1. 整页不做动画。uni-app 会缓存 tab 页（实测切换后页面根节点仍在），
+ *     整屏做位移/透明度过渡，观感就是"屏幕晃/闪"。
+ *  2. 起点透明度不要用 0。切页时页面是缓存的、已经完整可见，若从 0 开始，
+ *     一旦动画起始帧晚于页面显示一帧，就会出现「亮 → 全暗 → 再亮」的闪一下。
+ *     从 0.5 起跳即使慢半帧也只是轻微变暗，不会被感知成闪烁。
+ *  3. 位移距离要小：列表项用 14rpx 的轻微下沉，块级卡片用 22rpx 的横向轻推，
+ *     大距离滑入在反复切 tab 时会变成"弹幕"，非常吵。
+ */
+.fade-row { animation: rowIn 0.5s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
 @keyframes rowIn {
-  from { opacity: 0; transform: translateY(10rpx); }
+  from { opacity: 0.5; transform: translateY(14rpx); }
   to { opacity: 1; transform: none; }
 }
 
-/*
- * 从左侧滑入（块级卡片用）。
- * 距离刻意压到 40rpx（约 20px）而不是从屏幕外飞进来：
- *  - 横向位移在移动端代表"层级导航"，整屏距离放进内容层会让用户误以为卡片来自上一页；
- *  - 列表一多，长距离滑入会变成弹幕式连发，反复切换 tab 时很吵。
- * 想要"整屏飞入"的效果，把 translateX 改成 -100% 即可（不推荐用在长列表上）。
- */
-.slide-in-left { animation: slideInLeft 0.46s cubic-bezier(0.22, 0.8, 0.3, 1) both; }
+.slide-in-left { animation: slideInLeft 0.52s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
 @keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-40rpx); }
+  from { opacity: 0.5; transform: translateX(-22rpx); }
   to { opacity: 1; transform: none; }
 }
 
@@ -250,7 +255,151 @@ page {
 .t-row-desc { font-size: 22rpx; color: var(--p-sub, #999); margin-top: 4rpx; }
 .t-bottom-space { flex-shrink: 0; height: 60rpx; }
 
+/* ===================================================================
+ * 宽屏适配（平板 / 横屏 / 桌面）
+ *
+ * 判定由 useResponsive 加在页面根节点上。为什么不用 @media：
+ * 鸿蒙渲染层（uni-app-harmony-framework）里没有 matchMedia，媒体查询不生效，
+ * 而 getSystemInfoSync / onWindowResize 在 H5、App、鸿蒙上都可用。
+ *
+ * 尺寸换算参考：宽屏下 rpx 基准被锁到 480（pages.json），
+ * 即 1rpx ≈ 0.64px —— 1320rpx ≈ 845px、1400rpx ≈ 896px。
+ * =================================================================== */
+
+/*
+ * 内容居中限宽。
+ * 不加这条的话，平板横屏（1280px）下卡片会被拉到满宽，一行近百字，非常难读。
+ */
+.is-wide .t-card,
+.is-wide .card,
+.is-wide .total-card,
+.is-wide .exam-card,
+.is-wide .ov-strip,
+.is-wide .grid-card,
+.is-wide .stat-strip {
+  max-width: 1320rpx;
+  margin-left: auto;
+  margin-right: auto;
+}
+/*
+ * 列表类元素（待办卡片、记录行、考研卡、概览条）的居中限宽。
+ * 这些元素在页面里大多有自己的 scoped margin（scoped 属性选择器优先级更高、
+ * 且加载在 App.vue 之后），所以这里要用 !important 才能赢——
+ * 它们都不在 .t-flow 两栏容器里，不会和两栏布局的 margin 冲突。
+ */
+.is-wide .todo,
+.is-wide .rec,
+.is-wide .exam-card,
+.is-wide .ov-strip,
+.is-wide .list,
+.is-wide .rec-list {
+  max-width: 1240rpx;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/*
+ * 两栏（.is-2col，窗口 ≥1000px）：
+ * 把卡片按两列排布，用满平板的横向空间。
+ * 子项宽度用 calc 算（两列 + 左右各 24rpx 外边距）；
+ * 若某平台不支持 calc，会退化成两列紧贴，仍可正常使用。
+ */
+/*
+ * 两栏（.is-2col，窗口 ≥1000px）：
+ * 把卡片按两列排布，用满平板的横向空间。
+ * 宽度必须给余量：算到正好 100% 时亚像素舍入会偶发换行（踩过），
+ * 留 32rpx 余量后由 justify-content: center 居中，列间距仍是两卡各自的 24rpx 外边距。
+ * 若某平台不支持 calc，会退化成两列紧贴，仍可正常使用。
+ */
+.is-2col .t-flow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 1560rpx;
+  margin-left: auto;
+  margin-right: auto;
+}
+.is-2col .t-flow > .t-card,
+.is-2col .t-flow > .total-card {
+  /* 卡片默认 content-box，padding 不算在宽度里，两列会超出容器又被挤换行 */
+  box-sizing: border-box;
+  width: calc(50% - 64rpx);
+  margin: 18rpx 24rpx;
+}
+
+/*
+ * 横屏：纵向空间紧张，收紧顶部留白、给底部留出更多内容高度；
+ * 同时避开刘海/挖孔侧的安全区。
+ */
+.screen.is-landscape {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+.screen.is-landscape .t-hero { padding-top: 6rpx; padding-bottom: 12rpx; }
+.screen.is-landscape .t-hero-title { font-size: 34rpx; }
+.screen.is-landscape .t-hero-sub { font-size: 20rpx; }
+.screen.is-landscape .t-bottom-space { height: 32rpx; }
+/* 横屏高度小，弹层若超高会让底部按钮点不到，改为内部滚动 */
+.screen.is-landscape .pop-card { max-height: 84vh; overflow-y: auto; }
+
+/*
+ * 入场动画节流：长列表只让前若干项播动画（页面按索引加 .no-enter）。
+ * 上百个元素同时做透明度动画会让切页明显掉帧，尤其是平板的大屏。
+ */
+.no-enter { animation: none !important; }
+
 /* 可点击元素的按压反馈 */
 .press { transition: transform 0.12s ease, opacity 0.12s ease; }
 .press:active { transform: scale(0.975); opacity: 0.95; }
+
+/* ===================================================================
+ * 毛玻璃（液态玻璃）
+ *
+ * 配方：半透明底色 + 背景模糊 + 提高饱和度 + 顶部 1rpx 高光描边。
+ *
+ * 两条必须注意的坑（都踩过）：
+ *  1. 条件里必须写 px、不能写 rpx：@supports 的条件值不走 uni-app 的 rpx 转换，
+ *     写 blur(2rpx) 会被判为无效值，整块直接失效。
+ *  2. 这段必须放在 .t-card/.card 定义之后：同优先级下后面的规则赢，
+ *     放在前面会被骨架里的 background: var(--p-card) 覆盖，玻璃就没了。
+ *
+ * 底色刻意取 0.72 / 0.86 而不是 0.5 —— 万一模糊没生效（@supports 失效），
+ * 半透明 + 无模糊会让文字压在海报纸纹上看不清。
+ * =================================================================== */
+@supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
+  .t-card,
+  .card,
+  .glass {
+    background: var(--p-glass, rgba(255, 255, 255, 0.72));
+    backdrop-filter: blur(24rpx) saturate(150%);
+    -webkit-backdrop-filter: blur(24rpx) saturate(150%);
+    border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
+    box-shadow:
+      var(--p-shadow, 0 8rpx 24rpx rgba(40, 20, 10, 0.05)),
+      inset 0 2rpx 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* 待办卡片：底色是用户选的彩色渐变（已在 gradOf 里降到 0.86 透明），
+     这里补上模糊就是"彩色液态玻璃"；不覆盖它的 background，保留自定义配色 */
+  .todo {
+    backdrop-filter: blur(18rpx) saturate(140%);
+    -webkit-backdrop-filter: blur(18rpx) saturate(140%);
+    border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.55));
+  }
+
+  /* 弹层：更实一点的玻璃，保证正文可读 */
+  .pop-card {
+    background: var(--p-glass-strong, rgba(255, 255, 255, 0.86));
+    backdrop-filter: blur(40rpx) saturate(160%);
+    -webkit-backdrop-filter: blur(40rpx) saturate(160%);
+    border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
+  }
+
+  /* 遮罩：把整页虚化，弹层浮在虚化背景上（只在弹层打开时才会有这层开销） */
+  .pop-mask {
+    background: rgba(15, 10, 8, 0.3);
+    backdrop-filter: blur(8rpx);
+    -webkit-backdrop-filter: blur(8rpx);
+  }
+}
 </style>

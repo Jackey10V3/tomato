@@ -3,10 +3,12 @@
 import { computed } from 'vue'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { themeStyle } from '@/utils/theme'
 
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const hdrStyle = computed(() => ({
   paddingTop: statusBarH + 'px',
@@ -23,7 +25,7 @@ function inc(key: 'focusMin' | 'shortMin' | 'longMin' | 'roundsPerCycle', delta:
 </script>
 
 <template>
-  <view class="screen" :style="style">
+  <view class="screen" :class="layoutClass" :style="style">
     <view class="t-header" :style="hdrStyle">
       <text class="t-back" @click="goBack">←</text>
       <text class="t-title">计时设置</text>

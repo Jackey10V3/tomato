@@ -6,6 +6,9 @@
     "versionCode" : "100",
     "vueVersion" : "3",
     "locale" : "zh-Hans",
+    "uniStatistics" : {
+        "enable" : false
+    },
     "app-plus" : {
         "usingComponents" : true,
         "nvueStyleCompiler" : "uni-app",
@@ -59,7 +62,17 @@
     "app-harmony" : {
         "distribute" : {
             "bundleName" : "com.jackey.tomato",
-            "signingConfigs" : {},
+            "signingConfigs" : {
+                "default" : {
+                    "certpath" : "c:\\Users\\Administrator\\AppData\\Roaming\\HBuilder X\\extensions\\launcher\\agc-certs\\1789147605467.cer",
+                    "keyAlias" : "debugKey",
+                    "keyPassword" : "0000001BC82B53D19D0C3634F202792EDEBA5DF4FE4B76EA4F421144D163FEF5E238459B9C4659F2DD6CE2",
+                    "profile" : "c:\\Users\\Administrator\\AppData\\Roaming\\HBuilder X\\extensions\\launcher\\agc-certs\\1789147605467.p7b",
+                    "signAlg" : "SHA256withECDSA",
+                    "storeFile" : "c:\\Users\\Administrator\\AppData\\Roaming\\HBuilder X\\extensions\\launcher\\agc-certs\\1789147605467.p12",
+                    "storePassword" : "0000001BC82B53D19D0C3634F202792EDEBA5DF4FE4B76EA4F421144D163FEF5E238459B9C4659F2DD6CE2"
+                }
+            },
             "deviceTypes" : [ "phone", "tablet", "2in1" ]
         }
     }

@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { themeStyle, themeOptions, posterBg, posterOptions } from '@/utils/theme'
 import { SOUNDS, type SoundKey, type ThemeKey, type PosterKey } from '@/types/app'
 import { playEffect, testAllSounds } from '@/utils/audioEngine'
@@ -11,6 +12,7 @@ import { platform } from '@/platform'
 
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 /** 当前环境是否支持振动（H5 的 iOS Safari 不支持，给用户一个明确说明而不是"点了没反应"） */
 const hapticOk = platform.haptic.isSupported()
 
@@ -61,7 +63,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="screen" :style="[style, { background: posterBg(settings.s.poster) }]">
+  <view class="screen" :class="layoutClass" :style="[style, { background: posterBg(settings.s.poster) }]">
     <view class="t-header" :style="hdrStyle">
       <text class="t-back" @click="goBack">←</text>
       <text class="t-title">外观与音效</text>

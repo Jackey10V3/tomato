@@ -5,6 +5,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { useFocusStore } from '@/store/modules/focus'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { themeStyle, posterBg } from '@/utils/theme'
 import { TIER_META } from '@/types/focus'
@@ -14,7 +15,10 @@ import { useCountUp } from '@/composables/useCountUp'
 const store = useFocusStore()
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const { animKey } = useEnterAnim()
+/** 入场动画只作用于前若干个徽章：28 个一起播动画会拖慢切页 */
+const ENTER_MAX = 12
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const poster = computed(() => posterBg(settings.s.poster))
 const level = computed(() => store.levelInfo)
@@ -51,7 +55,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="screen" :style="[style, { background: poster }]">
+  <view class="screen" :class="layoutClass" :style="[style, { background: poster }]">
     <view class="t-header" :style="hdrStyle">
       <text class="t-back" @click="goBackSafe">←</text>
       <text class="t-title">成就</text>
@@ -88,10 +92,10 @@ onShow(() => {
             v-for="(b, i) in badges"
             :key="b.id"
             class="badge fade-row press"
-            :class="{ earned: b.earned }"
+            :class="{ earned: b.earned, 'no-enter': i >= ENTER_MAX }"
             :style="{
               borderColor: b.earned ? TIER_META[b.tier].color : 'transparent',
-              animationDelay: Math.min(i * 20, 280) + 'ms',
+              animationDelay: Math.min(i * 18, 220) + 'ms',
             }"
           >
             <text class="b-icon">{{ b.earned ? b.icon : '🔒' }}</text>

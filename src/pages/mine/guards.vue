@@ -5,11 +5,13 @@
 import { computed, ref } from 'vue'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { themeStyle } from '@/utils/theme'
 import { PRESET_BLOCKED, type WhitelistItem } from '@/types/app'
 
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const hdrStyle = computed(() => ({
   paddingTop: statusBarH + 'px',
@@ -50,7 +52,7 @@ function addCustom() {
 </script>
 
 <template>
-  <view class="screen" :style="style">
+  <view class="screen" :class="layoutClass" :style="style">
     <view class="t-header" :style="hdrStyle">
       <text class="t-back" @click="goBack">←</text>
       <text class="t-title">强力专注</text>

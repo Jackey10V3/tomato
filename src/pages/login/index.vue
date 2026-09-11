@@ -4,11 +4,13 @@ import { computed, ref } from 'vue'
 import { useAuthStore } from '@/store/modules/auth'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { themeStyle, posterBg } from '@/utils/theme'
 
 const auth = useAuthStore()
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const poster = computed(() => posterBg(settings.s.poster))
 
@@ -65,7 +67,7 @@ async function retryServer() {
 </script>
 
 <template>
-  <view class="screen" :style="[style, { background: poster }]">
+  <view class="screen" :class="layoutClass" :style="[style, { background: poster }]">
     <view class="t-header" :style="{ paddingTop: statusBarH + 'px' }">
       <text class="t-back" @click="goBack">←</text>
       <text class="t-title">{{ auth.isLogin ? '账号' : mode === 'login' ? '登录' : '注册' }}</text>

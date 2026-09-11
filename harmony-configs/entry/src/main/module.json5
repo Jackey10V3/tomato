@@ -24,6 +24,9 @@
         "startWindowIcon": "$media:startIcon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
+        // 允许横屏：不写这条时 ability 走默认方向（平板上是竖屏），转屏不会重排。
+        // auto_rotation_restricted = 跟随传感器旋转，同时受系统「旋转锁定」开关约束（推荐的平板取值）。
+        "orientation": "auto_rotation_restricted",
         "skills": [
           {
             "entities": [

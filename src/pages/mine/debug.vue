@@ -3,6 +3,7 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { useSettingsStore } from '@/store/modules/settings'
 import { listErrors, clearErrors, errorText, type DebugError } from '@/utils/debugLog'
 import { themeStyle } from '@/utils/theme'
@@ -11,6 +12,7 @@ import { storage } from '@/utils/storage'
 
 const settings = useSettingsStore()
 const { statusBarH, goBack } = useChrome()
+const { layoutClass } = useResponsive()
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 const hdrStyle = computed(() => ({
   paddingTop: statusBarH + 'px',
@@ -72,7 +74,7 @@ onShow(refresh)
 </script>
 
 <template>
-  <view class="screen" :style="style">
+  <view class="screen" :class="layoutClass" :style="style">
     <view class="t-header" :style="hdrStyle">
       <text class="t-back" @click="goBack">←</text>
       <text class="t-title">诊断信息</text>

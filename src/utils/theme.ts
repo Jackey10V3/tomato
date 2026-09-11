@@ -12,6 +12,12 @@ export interface ThemeCssVars {
   '--p-bg': string
   /** 卡片背景 */
   '--p-card': string
+  /** 毛玻璃卡片底色（半透明，配合 backdrop-filter 使用） */
+  '--p-glass': string
+  /** 毛玻璃高光描边色 */
+  '--p-glass-line': string
+  /** 弹层用：更实一点的玻璃底色，保证文字可读 */
+  '--p-glass-strong': string
   /** 主文字 */
   '--p-text': string
   /** 次要文字 */
@@ -164,9 +170,16 @@ export function buildTodoColorMap(
   return map
 }
 
-/** 由颜色生成卡片渐变（浅→稍深，保留白字可读性） */
-export function colorGradient(hex: string): string {
-  return `linear-gradient(135deg, ${mixHex(hex, '#ffffff', 0.06)}, ${mixHex(hex, '#ffffff', 0.34)})`
+/**
+ * 由颜色生成卡片渐变（浅→稍深，保留白字可读性）。
+ * alpha < 1 时输出半透明渐变，配合 .todo 上的 backdrop-filter 就是"液态玻璃"卡片；
+ * 之所以默认 1（不透明）：没有模糊兜底时半透明会看不清字。
+ */
+export function colorGradient(hex: string, alpha = 1): string {
+  const a = mixHex(hex, '#ffffff', 0.06)
+  const b = mixHex(hex, '#ffffff', 0.34)
+  if (alpha >= 1) return `linear-gradient(135deg, ${a}, ${b})`
+  return `linear-gradient(135deg, ${rgba(a, alpha)}, ${rgba(b, alpha)})`
 }
 
 /** 把 3 位色值补成 6 位、补 # 号、统一小写；非法返回 null */
@@ -217,6 +230,9 @@ export function themeStyle(key: ThemeKey, dark = false): ThemeCssVars {
       '--p-light': t.gradientLight,
       '--p-bg': t.bg,
       '--p-card': t.card,
+      '--p-glass': 'rgba(255, 255, 255, 0.72)',
+      '--p-glass-line': 'rgba(255, 255, 255, 0.75)',
+      '--p-glass-strong': 'rgba(255, 255, 255, 0.86)',
       '--p-text': t.text,
       '--p-sub': t.subText,
       '--p-radius': t.radius,
@@ -232,6 +248,9 @@ export function themeStyle(key: ThemeKey, dark = false): ThemeCssVars {
     '--p-light': t.gradientDeep,
     '--p-bg': '#14171c',
     '--p-card': '#1e2229',
+    '--p-glass': 'rgba(32, 36, 43, 0.72)',
+    '--p-glass-line': 'rgba(255, 255, 255, 0.14)',
+    '--p-glass-strong': 'rgba(38, 43, 51, 0.88)',
     '--p-text': '#eef1f5',
     '--p-sub': '#98a0ab',
     '--p-radius': t.radius,

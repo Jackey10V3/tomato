@@ -7,6 +7,7 @@ import { useTaskStore } from '@/store/modules/task'
 import { useFocusStore } from '@/store/modules/focus'
 import { useAuthStore } from '@/store/modules/auth'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
 import PageError from '@/components/PageError.vue'
@@ -20,6 +21,7 @@ const taskStore = useTaskStore()
 const focusStore = useFocusStore()
 const auth = useAuthStore()
 const { statusBarH } = useChrome()
+const { layoutClass } = useResponsive()
 // 每次切回本页都重播内容入场动画
 const { animKey } = useEnterAnim()
 /** 渲染出错时显示错误卡而不是白屏 */
@@ -136,7 +138,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="screen t-page" :style="[style, { background: poster }]">
+  <view class="screen t-page" :class="layoutClass" :style="[style, { background: poster }]">
     <!-- 雪山 Hero -->
     <view class="t-hero bold slide-in-left" :key="animKey" :style="{ paddingTop: statusBarH + 'px' }">
       <view class="hero-top">
@@ -163,6 +165,8 @@ onShow(() => {
     <scroll-view scroll-y class="t-body">
       <view :key="animKey">
         <PageError v-if="pageError" :message="pageError" @copy="copyErr" @dismiss="dismissErr" />
+        <!-- 宽屏（.is-2col）下这里会变成两栏，见 App.vue 的 .t-flow -->
+        <view class="t-flow">
           <!-- 三宫格 -->
         <view class="t-card grid-card slide-in-left mine-delay-1">
           <view class="grid-item press" @click="go('/pages/mine/achievements')"><text class="g-ico gold">🏆</text><text class="g-name">成就与等级</text></view>
@@ -219,6 +223,7 @@ onShow(() => {
             <text class="t-row-icon ri gray">🧪</text>
             <view class="t-row-main"><text class="t-row-title">诊断信息</text><text class="t-row-desc">白屏/报错排查：错误日志与设备信息</text></view>
           </view>
+        </view>
         </view>
           <view class="t-bottom-space" />
       </view>

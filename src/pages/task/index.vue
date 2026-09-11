@@ -9,6 +9,7 @@ import { useTaskStore } from '@/store/modules/task'
 import { useFocusStore, MIN_STAT_SEC } from '@/store/modules/focus'
 import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
+import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
 import PageError from '@/components/PageError.vue'
@@ -22,10 +23,13 @@ const store = useTaskStore()
 const focusStore = useFocusStore()
 const settings = useSettingsStore()
 const { statusBarH } = useChrome()
+const { layoutClass } = useResponsive()
 // 每次切回本页都重播卡片入场动画（原来只在首次进入时播一次）
 const { animKey } = useEnterAnim()
 /** 渲染出错时显示错误卡而不是白屏 */
 const { pageError, copyErr, dismiss: dismissErr } = usePageError('task-page')
+/** 入场动画只作用于前若干张卡片：条目多时同时播一堆动画会拖慢切页 */
+const ENTER_MAX = 10
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
 
 const todos = computed(() =>
@@ -57,7 +61,9 @@ function colorOf(t: Task): string {
   return autoColorMap.value.get(t._id) || palette.value[hashStr(t._id) % palette.value.length]
 }
 function gradOf(t: Task): string {
-  return colorGradient(colorOf(t))
+  // 0.86 的透明度 + .todo 上的背景模糊 = 毛玻璃卡片；
+  // 数值不能再低：白字压在虚化背景上会发虚（深色主题下更明显）
+  return colorGradient(colorOf(t), 0.86)
 }
 
 // 考研倒计时卡片（天/时/分实时刷新，长按可编辑名称与时间）
@@ -336,7 +342,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="screen t-page" :style="[style, { background: poster }]">
+  <view class="screen t-page" :class="layoutClass" :style="[style, { background: poster }]">
     <!-- 顶部（铺满到最上，状态栏区域也计入渐变） -->
     <view class="t-hero" :style="{ paddingTop: statusBarH + 'px' }">
       <view class="t-hero-head">
@@ -385,8 +391,8 @@ onShow(() => {
           <view
             v-for="(t, i) in todos"
             :key="t._id"
-            :class="['todo', 'fade-row', 'press', { popping: pressedId === t._id }]"
-            :style="{ background: gradOf(t), animationDelay: Math.min(i * 40, 320) + 'ms' }"
+            :class="['todo', 'fade-row', 'press', { popping: pressedId === t._id, 'no-enter': i >= ENTER_MAX }]"
+            :style="{ background: gradOf(t), animationDelay: Math.min(i * 30, 260) + 'ms' }"
             @click="onCardTap(t)"
             @touchstart="onPressStart(t, $event)"
             @touchmove="onPressMove"
