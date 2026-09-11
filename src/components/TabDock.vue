@@ -78,11 +78,10 @@ const items = computed(() => TABS)
   align-items: center;
   padding: 10rpx 14rpx;
   border-radius: 999rpx;
-  background: var(--p-glass-strong, rgba(255, 255, 255, 0.9));
-  border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
-  box-shadow:
-    0 14rpx 44rpx rgba(40, 20, 10, 0.18),
-    inset 0 2rpx 0 rgba(255, 255, 255, 0.6);
+  /* 降低不透明度，让底色透出来，避免白色胶囊形成明显"白边" */
+  background: var(--p-glass-strong, rgba(255, 255, 255, 0.55));
+  border: none;
+  box-shadow: 0 14rpx 44rpx rgba(40, 20, 10, 0.16);
   /* 全页只有这一个模糊层（面积小、常驻） */
   backdrop-filter: blur(20rpx) saturate(150%);
   -webkit-backdrop-filter: blur(20rpx) saturate(150%);
