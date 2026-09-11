@@ -11,6 +11,7 @@ import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
 import PageError from '@/components/PageError.vue'
+import TabDock from '@/components/TabDock.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
 import { buildBackup, parseBackup } from '@/utils/backup'
 import { MOTIVATIONS } from '@/utils/constant'
@@ -238,6 +239,7 @@ onShow(() => {
         </view>
       </view>
     </view>
+    <TabDock current="/pages/mine/index" />
   </view>
 </template>
 

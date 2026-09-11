@@ -48,13 +48,14 @@ page {
   box-sizing: border-box;
 }
 
-/* 页头（自绘导航） */
+/* 页头（自绘导航）：子页面与 tab 页保持同一套圆角栏目语言 */
 .t-header {
   display: flex;
   align-items: center;
   padding: 0 28rpx;
   height: 96rpx;
   position: relative;
+  border-radius: 0 0 28rpx 28rpx;
   .t-title {
     font-size: 36rpx;
     font-weight: 700;
@@ -175,15 +176,15 @@ page {
  *  3. 位移距离要小：列表项用 14rpx 的轻微下沉，块级卡片用 22rpx 的横向轻推，
  *     大距离滑入在反复切 tab 时会变成"弹幕"，非常吵。
  */
-.fade-row { animation: rowIn 0.5s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
+.fade-row { animation: rowIn 0.3s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
 @keyframes rowIn {
-  from { opacity: 0.5; transform: translateY(14rpx); }
+  from { opacity: 0.5; transform: translateY(10rpx); }
   to { opacity: 1; transform: none; }
 }
 
-.slide-in-left { animation: slideInLeft 0.52s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
+.slide-in-left { animation: slideInLeft 0.32s cubic-bezier(0.22, 0.75, 0.28, 1) both; }
 @keyframes slideInLeft {
-  from { opacity: 0.5; transform: translateX(-22rpx); }
+  from { opacity: 0.5; transform: translateX(-14rpx); }
   to { opacity: 1; transform: none; }
 }
 
@@ -200,11 +201,12 @@ page {
  * 现在高度只在这里算一次，页面里不再出现任何 vh 魔法数字。
  * ⚠️ 若改了 pages.json 里 tabBar 的 height，这里的 --t-tabbar-h 要同步。
  * =================================================================== */
-:root { --t-tabbar-h: 0px; }
-/* #ifdef H5 */
-/* H5 的页面容器包含 tabBar 区域（实测 pageBody=100vh、可见区=100vh-52px），需要扣除 */
-:root { --t-tabbar-h: calc(52px + env(safe-area-inset-bottom, 0px)); }
-/* #endif */
+:root {
+  /* 底部悬浮 Dock（components/TabDock）的占位：
+     原生 tabBar 已通过 hideTabBar 隐藏， Dock 本体约 96rpx + 距底 16rpx + 安全区。
+     统一按 px 预留（不再区分 H5/原生），内容区滚动到底也不会被 Dock 压住。 */
+  --t-tabbar-h: calc(78px + env(safe-area-inset-bottom, 0px));
+}
 
 .screen.t-page {
   height: calc(100vh - var(--t-tabbar-h, 0px));
@@ -215,16 +217,21 @@ page {
   box-sizing: border-box;
 }
 
-/* 顶部区：默认"浅色渐变 + 深色标题"，加 .bold 变成"主题渐变 + 白字"（我的页用） */
+/* 顶部区：默认"浅色渐变 + 深色标题"，加 .bold 变成"主题渐变 + 白字"（我的页用）。
+   做成圆角矩形栏目（仿系统应用市场的头部卡片）：只在底部收圆角，
+   顶部仍顶到屏幕外承接状态栏；配一层浅投影让它从页面里"浮"起来。 */
 .t-hero {
   flex-shrink: 0;
   padding: 14rpx 30rpx 20rpx;
   background: linear-gradient(180deg, var(--p-light, #f7c1cf) 0%, var(--p-bg, #fbf3f3) 100%);
+  border-radius: 0 0 36rpx 36rpx;
+  box-shadow: 0 10rpx 30rpx rgba(40, 20, 10, 0.08);
 }
 .t-hero.bold {
-  border-radius: 0 0 30rpx 30rpx;
+  border-radius: 0 0 36rpx 36rpx;
   background: var(--p-grad, linear-gradient(135deg, #f4708b, #d8415d));
   color: #fff;
+  box-shadow: 0 12rpx 32rpx rgba(40, 20, 10, 0.16);
 }
 .t-hero-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18rpx; }
 .t-hero-title { font-size: 40rpx; font-weight: 800; color: var(--p-deep, #7a2b3c); }
@@ -381,62 +388,54 @@ page {
 }
 
 /* ===================================================================
- * 毛玻璃（液态玻璃）
+ * 液态玻璃
  *
- * 配方：半透明底色 + 背景模糊 + 提高饱和度 + 顶部 1rpx 高光描边。
+ * ⚠️ 性能红线（真机实测得出的教训，别退回去）：
+ * backdrop-filter 在鸿蒙真机上非常贵——带模糊的卡片在滚动/动画时每帧都要重算，
+ * 列表一多帧率直接崩。所以**页面卡片一律不用背景模糊**，
+ * 玻璃感全部用零 GPU 开销的三件套撑起来：
+ *   半透明底色 + 材质流光（斜向高光渐变）+ 折射（上亮下暗的内阴影）+ 高光描边。
+ * 真模糊只留给弹层：面积小、出现时间短、一次只有一层。
  *
- * 两条必须注意的坑（都踩过）：
- *  1. 条件里必须写 px、不能写 rpx：@supports 的条件值不走 uni-app 的 rpx 转换，
- *     写 blur(2rpx) 会被判为无效值，整块直接失效。
- *  2. 这段必须放在 .t-card/.card 定义之后：同优先级下后面的规则赢，
- *     放在前面会被骨架里的 background: var(--p-card) 覆盖，玻璃就没了。
- *
- * 底色刻意取 0.72 / 0.86 而不是 0.5 —— 万一模糊没生效（@supports 失效），
- * 半透明 + 无模糊会让文字压在海报纸纹上看不清。
+ * 两个已踩过的坑：
+ *  1. @supports 条件值必须写 px（rpx 不走转换，blur(2rpx) 判无效 → 整块失效）；
+ *  2. 这段必须放在 .t-card/.card 定义之后（同优先级后者赢，否则被骨架背景覆盖）。
  * =================================================================== */
-@supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
-  .t-card,
-  .card,
-  .glass {
-    background-color: var(--p-glass, rgba(255, 255, 255, 0.72));
-    /* 材质流光：左上到右下一道斜向高光，模拟玻璃表面的反光（纯渐变，零成本） */
-    background-image: var(
-      --p-sheen,
-      linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.55) 0%,
-        rgba(255, 255, 255, 0.08) 30%,
-        rgba(255, 255, 255, 0) 52%
-      )
-    );
-    /*
-     * 模糊半径压到 14rpx：带 backdrop-filter 的元素在滚动/动画时每帧都要重算模糊，
-     * 平板上列表达到几十个就会掉帧。视觉上 14rpx 已经足够通透，
-     * 剩下的"玻璃感"交给上面的流光和下面的折射高光（都是零成本）。
-     */
-    backdrop-filter: blur(14rpx) saturate(140%);
-    -webkit-backdrop-filter: blur(14rpx) saturate(140%);
-    border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
-    /* 折射：上缘提亮、下缘压暗，让卡片像有厚度的玻璃，而不是一块半透明色块 */
-    box-shadow:
-      var(--p-shadow, 0 8rpx 24rpx rgba(40, 20, 10, 0.05)),
-      inset 0 2rpx 0 rgba(255, 255, 255, 0.6),
-      inset 0 -2rpx 0 rgba(255, 255, 255, 0.22);
-  }
+.t-card,
+.card,
+.glass {
+  background-color: var(--p-glass, rgba(255, 255, 255, 0.72));
+  /* 材质流光：左上到右下一道斜向高光，模拟玻璃表面的反光 */
+  background-image: var(
+    --p-sheen,
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.08) 30%,
+      rgba(255, 255, 255, 0) 52%
+    )
+  );
+  border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
+  /* 折射：上缘提亮、下缘压暗，让卡片像有厚度的玻璃，而不是一块半透明色块 */
+  box-shadow:
+    var(--p-shadow, 0 8rpx 24rpx rgba(40, 20, 10, 0.05)),
+    inset 0 2rpx 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2rpx 0 rgba(255, 255, 255, 0.22);
+}
 
-  /* 弹层：更实一点的玻璃，保证正文可读 */
+/* 弹层（对应官方材质的 ULTRA_THICK 档）：唯一的真模糊，只在弹层打开时存在 */
+@supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
   .pop-card {
     background: var(--p-glass-strong, rgba(255, 255, 255, 0.86));
     backdrop-filter: blur(40rpx) saturate(160%);
     -webkit-backdrop-filter: blur(40rpx) saturate(160%);
     border: 1rpx solid var(--p-glass-line, rgba(255, 255, 255, 0.75));
   }
-
-  /* 遮罩：把整页虚化，弹层浮在虚化背景上（只在弹层打开时才会有这层开销） */
+  /* 遮罩：把整页虚化（面积大但只在弹层打开的零点几秒里存在） */
   .pop-mask {
     background: rgba(15, 10, 8, 0.3);
-    backdrop-filter: blur(8rpx);
-    -webkit-backdrop-filter: blur(8rpx);
+    backdrop-filter: blur(10rpx);
+    -webkit-backdrop-filter: blur(10rpx);
   }
 }
 </style>

@@ -13,6 +13,7 @@ import { useResponsive } from '@/composables/useResponsive'
 import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
 import PageError from '@/components/PageError.vue'
+import TabDock from '@/components/TabDock.vue'
 import { themeStyle, posterBg, todoPalette, buildTodoColorMap, colorGradient, hashStr, pickerPalette, normalizeHex } from '@/utils/theme'
 import { PRIORITY_META, PRIORITY_OPTIONS } from '@/utils/constant'
 import TagSelect from '@/components/TagSelect.vue'
@@ -562,6 +563,7 @@ onShow(() => {
         <view class="pill g-btn" @click="closeGuide"><text>开始使用</text></view>
       </view>
     </view>
+    <TabDock current="/pages/task/index" />
   </view>
 </template>
 

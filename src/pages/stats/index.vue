@@ -13,6 +13,7 @@ import { usePageError } from '@/composables/usePageError'
 import { themeStyle, posterBg, chartPalette, buildTodoColorMap } from '@/utils/theme'
 import { mondayKey, parseDateKey } from '@/utils/date'
 import PageError from '@/components/PageError.vue'
+import TabDock from '@/components/TabDock.vue'
 import type { FocusRecord } from '@/types/focus'
 
 const store = useFocusStore()
@@ -520,6 +521,7 @@ onShow(() => {
         <view class="t-bottom-space" />
       </view>
     </scroll-view>
+    <TabDock current="/pages/stats/index" />
   </view>
 </template>
 
