@@ -14,7 +14,7 @@ import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
-import { markProfileDirty, syncNow, cloudEnabled, lastSyncInfo } from '@/utils/cloudSync'
+import { markProfileDirty, syncNow, cloudEnabled, lastSyncInfo, resetPushed } from '@/utils/cloudSync'
 import { useCanvasBg } from '@/composables/useCanvasBg'
 import { buildBackup, parseBackup } from '@/utils/backup'
 import { MOTIVATIONS } from '@/utils/constant'
@@ -143,14 +143,32 @@ function importBackup() {
   })
 }
 
+/** 云端全量重传：清"已推送"标记后重跑同步，修复云端被手动删库/漏推导致的断档 */
+async function fullResync() {
+  if (syncingNow.value) return
+  if (!cloudEnabled()) {
+    uni.showToast({ title: '请先登录云端账号', icon: 'none' })
+    return
+  }
+  syncingNow.value = true
+  resetPushed()
+  uni.showLoading({ title: '全量重传中…', mask: true })
+  const r = await syncNow('manual')
+  uni.hideLoading()
+  syncInfo.value = lastSyncInfo()
+  syncingNow.value = false
+  uni.showToast({ title: r.ok ? '重传完成' : `失败：${r.msg}`, icon: 'none', duration: 2600 })
+}
+
 function dataMenu() {
   uni.showActionSheet({
-    itemList: ['导出备份（复制到剪贴板）', '从剪贴板恢复备份', '清除已完成任务', '清空专注记录', '恢复默认设置'],
+    itemList: ['导出备份（复制到剪贴板）', '从剪贴板恢复备份', '云端全量重传（修复同步）', '清除已完成任务', '清空专注记录', '恢复默认设置'],
     success: r => {
       if (r.tapIndex === 0) return exportBackup()
       if (r.tapIndex === 1) return importBackup()
-      if (r.tapIndex === 2) return taskStore.clearDone()
-      if (r.tapIndex === 3) {
+      if (r.tapIndex === 2) return fullResync()
+      if (r.tapIndex === 3) return taskStore.clearDone()
+      if (r.tapIndex === 4) {
         uni.showModal({
           title: '清空专注记录',
           content: '所有历史流水与统计将删除，且不可恢复（建议先导出备份）',

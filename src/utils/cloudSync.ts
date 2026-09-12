@@ -71,6 +71,11 @@ export function scheduleSync(delayMs = 1500, force = false) {
   debounceTimer = setTimeout(() => void syncNow('scheduled'), delayMs)
 }
 
+/** 清空"已上云"标记：下一轮同步会把本地全部专注记录重推（服务端按 userId+kind+startedAt 幂等防重，不会产生重复） */
+export function resetPushed(): void {
+  storage.remove(K_PUSHED)
+}
+
 /** 手动/登录后的立即同步（无视节流） */
 export async function syncNow(reason = 'manual'): Promise<{ ok: boolean; msg: string }> {
   if (syncing) return { ok: false, msg: '上一次同步还没跑完' }
