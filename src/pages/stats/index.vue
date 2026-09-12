@@ -12,6 +12,7 @@ import { useEnterAnim } from '@/composables/useEnterAnim'
 import { usePageError } from '@/composables/usePageError'
 import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import { themeStyle, posterBg, chartPalette, buildTodoColorMap } from '@/utils/theme'
+import { useCanvasBg } from '@/composables/useCanvasBg'
 import { mondayKey, parseDateKey, dateKey } from '@/utils/date'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
@@ -26,6 +27,8 @@ const { animKey } = useEnterAnim()
 /** 渲染出错时不再白屏（公共兜底，与待办 / 我的页一致） */
 const { pageError, copyErr, dismiss: dismissErr } = usePageError('stats-page')
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
+// 沉浸式：画布刷页面同款底色
+useCanvasBg(() => posterBg(settings.s.poster))
 const poster = computed(() => posterBg(settings.s.poster))
 
 type Period = 'day' | 'week' | 'month' | 'year'

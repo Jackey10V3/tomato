@@ -25,9 +25,10 @@ onLaunch(() => {
   setInterval(() => scheduleSync(0), 3 * 60 * 1000)
 })
 
-// 回到前台：尽快把云端数据拉平（后台期间的变更靠这里补）
+// 回到前台：尽快把云端数据拉平（后台期间的变更靠这里补）。
+// force=true 绕过 60 秒节流：用户打开 App 就应该立刻看到最新数据
 onShow(() => {
-  scheduleSync(800)
+  scheduleSync(800, true)
 })
 
 // 进后台/退出前把合并写入队列落盘，避免 250ms 窗口内的变更丢失

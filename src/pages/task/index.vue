@@ -16,6 +16,7 @@ import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, posterBg, todoPalette, buildTodoColorMap, colorGradient, hashStr, pickerPalette, normalizeHex } from '@/utils/theme'
+import { useCanvasBg } from '@/composables/useCanvasBg'
 import { PRIORITY_META, PRIORITY_OPTIONS } from '@/utils/constant'
 import TagSelect from '@/components/TagSelect.vue'
 import { storage } from '@/utils/storage'
@@ -123,6 +124,8 @@ function editGoal() {
 
 // 背景海报
 const poster = computed(() => posterBg(settings.s.poster))
+// 沉浸式：把 html 画布刷成页面同款背景，盖住小白条区域的系统底色
+useCanvasBg(() => poster.value)
 // 等级
 const level = computed(() => focusStore.levelInfo)
 function goAch() {

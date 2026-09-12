@@ -15,6 +15,7 @@ import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
 import { markProfileDirty } from '@/utils/cloudSync'
+import { useCanvasBg } from '@/composables/useCanvasBg'
 import { buildBackup, parseBackup } from '@/utils/backup'
 import { MOTIVATIONS } from '@/utils/constant'
 import type { ThemeKey } from '@/types/app'
@@ -30,6 +31,8 @@ const { animKey } = useEnterAnim()
 /** 渲染出错时显示错误卡而不是白屏 */
 const { pageError, copyErr, dismiss: dismissErr } = usePageError('mine-page')
 const style = computed(() => themeStyle(settings.s.theme, settings.s.dark))
+// 沉浸式：画布刷页面同款底色
+useCanvasBg(() => posterBg(settings.s.poster))
 const poster = computed(() => posterBg(settings.s.poster))
 const slogan = ref(MOTIVATIONS[(Math.random() * MOTIVATIONS.length) | 0])
 const level = computed(() => focusStore.levelInfo)
