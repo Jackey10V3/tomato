@@ -119,12 +119,15 @@ function recordDateKey(ts: number): string {
 }
 
 function commit(kind: SessionKind, actualSec: number, result: 'completed' | 'manual' | 'giveup' | 'abandoned', leaveTimes: number, reason?: string) {
-  const startedAt = Date.now() - actualSec * 1000
+  const sec = Math.round(actualSec)
+  // 噪音过滤：专注不足 3 分钟、或主动放弃的，不进专注记录（本机与云端都不留）
+  if (kind === 'focus' && (result === 'giveup' || sec < 180)) return
+  const startedAt = Date.now() - sec * 1000
   bound.focus?.add({
     kind,
     mode: st.mode,
     plannedSec: st.plannedSec > 0 ? Math.round(st.plannedSec) : secFor(kind),
-    actualSec: Math.round(actualSec),
+    actualSec: sec,
     result,
     taskId: st.taskId,
     taskTitle: st.taskTitle,
