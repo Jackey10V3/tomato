@@ -138,6 +138,49 @@ export const useAuthStore = defineStore('auth', {
       this.persist()
       return { ok: true }
     },
+    /**
+     * 跨设备登录（多设备支持的关键）：
+     * 本地账号是每台设备各自存的，新设备上「登录」必然查无此人。
+     * 所以本地登录失败且本机无此账号时，改用云端验证——云端账号存在且密码正确，
+     * 就自动在本机建档（下次可离线登录），并直接换取 token。
+     */
+    async loginSmart(payload: { account: string; password: string }): Promise<{ ok: boolean; msg?: string }> {
+      const account = payload.account.trim().toLowerCase()
+      const localRes = this.login({ account, password: payload.password })
+      if (localRes.ok) return localRes
+      // 本机已有同账号但密码错：以本地为准提示，不要被云端状态误导
+      const existsLocal = this.users.some(u => u.account === account)
+      if (existsLocal) return localRes
+      try {
+        const r = await http.post<{ token?: string }>(
+          '/auth/login',
+          { account, password: payload.password },
+          { auth: false },
+        )
+        if (r?.token) {
+          this.setToken(r.token)
+          // 本机建档，昵称从云端资料补齐
+          let nickname = `番茄${account.slice(0, 4)}`
+          try {
+            const me = await http.get<{ nickname?: string }>('/auth/me')
+            if (me?.nickname) nickname = me.nickname
+          } catch {
+            /* 拉不到昵称不阻断登录 */
+          }
+          this.users.push({ account, nickname, hash: hash(payload.password), createdAt: Date.now() })
+          this.account = account
+          this.persist()
+          return { ok: true }
+        }
+        return { ok: false, msg: '云端未返回 token' }
+      } catch (e) {
+        const code = e instanceof ApiError ? e.code : -1
+        if (code === 401 || code === 404) return { ok: false, msg: '账号或密码不正确' }
+        if (code === 429) return { ok: false, msg: '尝试过于频繁，请稍后再试' }
+        logError('auth.loginSmart', e)
+        return { ok: false, msg: '云端未连接，无法在其他设备登录该账号（可稍后重试）' }
+      }
+    },
     logout() {
       this.account = ''
       this.setToken('')

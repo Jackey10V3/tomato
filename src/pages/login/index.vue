@@ -7,6 +7,7 @@ import { useChrome } from '@/composables/usePageChrome'
 import { useResponsive } from '@/composables/useResponsive'
 import { themeStyle, posterBg } from '@/utils/theme'
 import { scheduleSync } from '@/utils/cloudSync'
+import { storage } from '@/utils/storage'
 
 const auth = useAuthStore()
 const settings = useSettingsStore()
@@ -27,10 +28,14 @@ async function submit() {
     uni.showToast({ title: '请填写账号与密码', icon: 'none' })
     return
   }
+  // 登录 tab 用跨设备登录（本机没有该账号时自动向云端验证并建档）；
+  // 注册 tab 仍是本地建档 + 连云端
+  syncing.value = true
   const res =
     mode.value === 'login'
-      ? auth.login({ account: account.value, password: password.value })
+      ? await auth.loginSmart({ account: account.value, password: password.value })
       : auth.register({ account: account.value, password: password.value, nickname: nickname.value })
+  syncing.value = false
   if (!res.ok) {
     uni.showToast({ title: res.msg || '操作失败', icon: 'none' })
     return
@@ -38,11 +43,11 @@ async function submit() {
   // 登录后把昵称同步到个性化
   if (auth.current?.nickname) settings.update({ nickname: auth.current.nickname })
 
-  // 本地登录成功后，再换取服务端 token（云端功能如自习室/云同步依赖它）
+  // 换取/刷新服务端 token（云端功能如自习室/云同步依赖它）
   syncing.value = true
   const srv = await auth.syncServer(password.value)
   syncing.value = false
-  if (srv.ok) {
+  if (srv.ok || storage.get<string>('auth:token')) {
     // 连上云端后立刻做一次数据同步：本地数据上云 + 云端数据合并下来（换设备由此打通）
     scheduleSync(300, true)
     uni.showToast({ title: '登录成功 · 已连接云端', icon: 'success' })
