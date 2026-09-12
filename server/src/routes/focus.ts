@@ -24,6 +24,9 @@ focusRouter.post('/', auth(), async (req: Request, res: Response) => {
   }
   const now = new Date()
   const startedAt = body.startedAt ? new Date(body.startedAt) : new Date(now.getTime() - (body.actualSec || 0) * 1000)
+  // 幂等防重：同账号同类型同开始时间的记录视为同一条（推送重试/多端重复推）
+  const existed = await FocusRecord.findOne({ userId: uid, kind: body.kind || 'focus', startedAt })
+  if (existed) return res.json(ok(json(existed)))
   const doc = await FocusRecord.create({
     userId: uid,
     taskId: body.taskId ? new mongoose.Types.ObjectId(body.taskId) : undefined,
