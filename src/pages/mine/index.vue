@@ -14,7 +14,7 @@ import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
-import { markProfileDirty } from '@/utils/cloudSync'
+import { markProfileDirty, syncNow, cloudEnabled, lastSyncInfo } from '@/utils/cloudSync'
 import { useCanvasBg } from '@/composables/useCanvasBg'
 import { buildBackup, parseBackup } from '@/utils/backup'
 import { MOTIVATIONS } from '@/utils/constant'
@@ -40,6 +40,33 @@ const totalDays = computed(() => new Set(focusStore.records.filter(r => r.kind =
 
 const AVATARS = ['🍅', '🎯', '🌱', '🔥', '🐱', '🐻', '🐼', '🦊', '🐤', '🌙', '⭐', '📚']
 const picker = ref(false)
+
+/** 云同步状态（上次同步时间 / 失败原因），点击立即同步 */
+const syncInfo = ref(lastSyncInfo())
+const syncingNow = ref(false)
+const syncDesc = computed(() => {
+  if (!cloudEnabled()) return '未登录云端 · 登录后自动同步'
+  if (syncInfo.value.error) return `上次同步失败：${syncInfo.value.error} · 点按重试`
+  if (!syncInfo.value.at) return '尚未同步 · 点按立即同步'
+  const d = new Date(syncInfo.value.at)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `上次同步 ${hh}:${mm} · 点按立即同步`
+})
+async function manualSync() {
+  if (syncingNow.value) return
+  if (!cloudEnabled()) {
+    uni.showToast({ title: '请先登录云端账号', icon: 'none' })
+    return
+  }
+  syncingNow.value = true
+  uni.showLoading({ title: '同步中…', mask: true })
+  const r = await syncNow('manual')
+  uni.hideLoading()
+  syncInfo.value = lastSyncInfo()
+  syncingNow.value = false
+  uni.showToast({ title: r.ok ? '同步完成' : `同步失败：${r.msg}`, icon: 'none', duration: 2600 })
+}
 
 function editNickname() {
   uni.showModal({
@@ -142,6 +169,7 @@ useNativeTabBar()
 onShow(() => {
   taskStore.loadLocal()
   settings.applySideEffects()
+  syncInfo.value = lastSyncInfo()
 })
 </script>
 
@@ -189,6 +217,13 @@ onShow(() => {
             <view class="t-row-main">
               <text class="t-row-title">{{ auth.isLogin ? auth.displayName : '本地登录 / 注册' }}</text>
               <text class="t-row-desc">{{ auth.isLogin ? `账号：${auth.account}（本地，未联网）` : '离线账号，数据只存本机' }}</text>
+            </view>
+          </view>
+          <view class="t-row press" @click="manualSync">
+            <text class="t-row-icon ri green">☁️</text>
+            <view class="t-row-main">
+              <text class="t-row-title">云同步{{ auth.isLogin ? '' : '（未登录）' }}</text>
+              <text class="t-row-desc">{{ syncDesc }}</text>
             </view>
           </view>
           <view class="t-row press" @click="coming">
@@ -287,7 +322,7 @@ onShow(() => {
 .g-ico { font-size: 46rpx; &.gold { color: var(--p-primary, #e0a800); } &.blue { color: var(--p-primary, #1e88e5); } &.red { color: var(--p-primary, #f2607c); } }
 .g-name { font-size: 22rpx; color: var(--p-sub, #666); }
 .tag { font-size: 22rpx; color: #fff; background: #b9a2a8; border-radius: 8rpx; padding: 2rpx 10rpx; font-weight: 700; }
-.ri { &.blue { color: #1e88e5; } &.purple { color: #8e24aa; } &.red { color: #f2607c; } &.cyan { color: #00acc1; } &.pink { color: #ec407a; } &.gray { color: #909399; } }
+.ri { &.blue { color: #1e88e5; } &.purple { color: #8e24aa; } &.red { color: #f2607c; } &.cyan { color: #00acc1; } &.pink { color: #ec407a; } &.gray { color: #909399; } &.green { color: #2e7d32; } }
 .card-head { display: flex; justify-content: space-between; align-items: center; }
 .card-title { font-size: 34rpx; font-weight: 800; }
 .card-close { width: 56rpx; height: 56rpx; border-radius: 50%; background: #f2efec; display: flex; align-items: center; justify-content: center; }

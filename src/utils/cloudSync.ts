@@ -31,6 +31,7 @@ interface TaskMaps {
   S2L: Record<string, string>
 }
 const K_LAST_SYNC = 'cloud:last-sync-at'
+const K_LAST_SYNC_ERR = 'cloud:last-sync-err'
 /** 计划同步的最小间隔（防抖；登录触发的可越过） */
 const MIN_GAP_MS = 60 * 1000
 
@@ -39,6 +40,14 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 export function cloudEnabled(): boolean {
   return !!storage.get<string>('auth:token')
+}
+
+/** 供"我的"页展示：上次同步时间与失败原因 */
+export function lastSyncInfo(): { at: number; error: string } {
+  return {
+    at: Number(storage.get<string>(K_LAST_SYNC) || 0),
+    error: storage.get<string>(K_LAST_SYNC_ERR) || '',
+  }
 }
 
 function pushedSet(): Set<string> {
@@ -72,9 +81,12 @@ export async function syncNow(reason = 'manual'): Promise<{ ok: boolean; msg: st
     await syncFocusRecords(maps)
     await syncProfile()
     storage.set(K_LAST_SYNC, String(Date.now()))
+    storage.set(K_LAST_SYNC_ERR, '')
     return { ok: true, msg: reason }
   } catch (e) {
-    return { ok: false, msg: e instanceof Error ? e.message : String(e) }
+    const msg = e instanceof Error ? e.message : String(e)
+    storage.set(K_LAST_SYNC_ERR, msg)
+    return { ok: false, msg }
   } finally {
     syncing = false
   }
