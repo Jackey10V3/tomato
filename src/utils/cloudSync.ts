@@ -82,21 +82,37 @@ export async function syncNow(reason = 'manual'): Promise<{ ok: boolean; msg: st
 
 /* ---------------- 个人资料同步（昵称/头像） ---------------- */
 
+const K_PROFILE_DIRTY = 'cloud:profile-dirty'
+
+/** 用户在「我的」页改了昵称/头像后调用：标记待推送并尽快同步 */
+export function markProfileDirty() {
+  storage.set(K_PROFILE_DIRTY, '1')
+  scheduleSync(1200, true)
+}
+
 async function syncProfile(): Promise<void> {
   const settings = useSettingsStore()
   const authStore = useAuthStore()
-  // 先推本地资料，再拉云端最终态（云端为准，改动时会立即推）
-  try {
-    await http.put('/auth/me', { nickname: settings.s.nickname, avatar: settings.s.avatar }, { loading: false })
-  } catch {
-    /* 推送失败不影响拉取 */
+  const dirty = !!storage.get<string>(K_PROFILE_DIRTY)
+  // 只在用户改过资料（脏标记）时才推送，避免两台设备的旧资料互相覆盖；
+  // 平时同步只拉云端资料 → 「一处修改，另一台跟上」
+  if (dirty) {
+    try {
+      await http.put('/auth/me', { nickname: settings.s.nickname, avatar: settings.s.avatar }, { loading: false })
+      storage.remove(K_PROFILE_DIRTY)
+    } catch {
+      /* 推送失败保留脏标记，下轮再推 */
+    }
   }
   try {
     const me = await http.get<{ nickname?: string; avatar?: string }>('/auth/me')
-    if (me?.avatar && me.avatar !== settings.s.avatar) settings.update({ avatar: me.avatar })
-    if (me?.nickname) {
-      settings.update({ nickname: me.nickname })
-      authStore.rename(me.nickname)
+    if (!dirty) {
+      // 本地没改过 → 云端为准
+      if (me?.avatar && me.avatar !== settings.s.avatar) settings.update({ avatar: me.avatar })
+      if (me?.nickname) {
+        settings.update({ nickname: me.nickname })
+        authStore.rename(me.nickname)
+      }
     }
   } catch {
     /* 离线时跳过 */
@@ -204,7 +220,13 @@ async function syncTasks(): Promise<TaskMaps> {
   }
   for (const t of toPush) {
     try {
-      await http.post('/tasks', taskToCloud(t), { loading: false })
+      // 回填映射：首次同步的新任务推送后才有服务端 _id，
+      // 后面的专注记录推送要靠它转换 taskId（否则记录丢失任务关联）
+      const r = await http.post<{ _id?: string }>('/tasks', taskToCloud(t), { loading: false })
+      if (r?._id) {
+        maps.L2S[t._id] = r._id
+        maps.S2L[r._id] = t._id
+      }
     } catch {
       /* 本轮失败，下轮 syncNow 幂等补推 */
     }

@@ -14,6 +14,7 @@ import { useNativeTabBar } from '@/composables/useNativeTabBar'
 import PageError from '@/components/PageError.vue'
 import TabDock from '@/components/TabDock.vue'
 import { themeStyle, themeOptions, posterBg } from '@/utils/theme'
+import { markProfileDirty } from '@/utils/cloudSync'
 import { buildBackup, parseBackup } from '@/utils/backup'
 import { MOTIVATIONS } from '@/utils/constant'
 import type { ThemeKey } from '@/types/app'
@@ -47,6 +48,7 @@ function editNickname() {
       const v = (r as unknown as { content?: string }).content?.trim()
       if (v) {
         settings.update({ nickname: v })
+        markProfileDirty()
         if (auth.isLogin) auth.rename(v)
         uni.showToast({ title: '已更新', icon: 'success' })
       }
@@ -237,7 +239,7 @@ onShow(() => {
       <view class="pop-card" @click.stop>
         <view class="card-head"><text class="card-title">选择头像</text><text class="card-close" @click="picker = false">✕</text></view>
         <view class="avatar-grid">
-          <view v-for="a in AVATARS" :key="a" class="av" :class="{ on: settings.s.avatar === a }" @click="settings.update({ avatar: a }); picker = false"><text>{{ a }}</text></view>
+          <view v-for="a in AVATARS" :key="a" class="av" :class="{ on: settings.s.avatar === a }" @click="settings.update({ avatar: a }); markProfileDirty(); picker = false"><text>{{ a }}</text></view>
         </view>
       </view>
     </view>
