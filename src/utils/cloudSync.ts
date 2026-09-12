@@ -25,6 +25,8 @@ import type { Task } from '@/types/task'
 import type { FocusRecord } from '@/types/focus'
 
 const K_PUSHED = 'cloud:pushed-record-ids'
+/** 全量重传标记：下一轮 syncTasks 把本地全部任务强制重推一遍（存量数据补字段用） */
+const K_TASK_REPUSH = 'cloud:task-repush'
 
 /** 本地任务 id <-> 云端任务 _id 的映射：专注记录上传/下载时保持任务关联 */
 interface TaskMaps {
@@ -75,6 +77,8 @@ export function scheduleSync(delayMs = 1500, force = false) {
 /** 清空"已上云"标记：下一轮同步会把本地全部专注记录重推（服务端按 userId+kind+startedAt 幂等防重，不会产生重复） */
 export function resetPushed(): void {
   storage.remove(K_PUSHED)
+  // 任务没有 pushed-set（clientId 幂等 upsert），用标记让下一轮全量重推，补齐 v2 新增的详情字段
+  storage.set(K_TASK_REPUSH, '1')
 }
 
 /** 手动/登录后的立即同步（无视节流） */
@@ -262,11 +266,13 @@ async function syncTasks(): Promise<TaskMaps> {
       toPush.push(local) // 本地较新 → 回推
     }
   }
-  // 2) 推送：本地较新的 + 云端没有的（POST 按 clientId 幂等，重复推无害）
+  // 2) 推送：本地较新的 + 云端没有的 + 全量重传标记（POST 按 clientId 幂等，重复推无害）
+  const forceAll = !!storage.get<string>(K_TASK_REPUSH)
   const cloudIds = new Set(serverDocs.map(s => s.clientId))
   for (const t of taskStore.tasks) {
-    if (!cloudIds.has(t._id) || toPush.includes(t)) toPush.push(t)
+    if (forceAll || !cloudIds.has(t._id) || toPush.includes(t)) toPush.push(t)
   }
+  if (forceAll) storage.remove(K_TASK_REPUSH)
   for (const t of toPush) {
     try {
       // 回填映射：首次同步的新任务推送后才有服务端 _id，
