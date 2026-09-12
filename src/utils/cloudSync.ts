@@ -4,13 +4,14 @@
  * 工作方式：
  * - 任务：POST /tasks 按 clientId（= 本地 _id）幂等 upsert，服务端按 updatedAt 做
  *   LWW 裁决 → 推送是幂等的，随便重推；拉取后按 clientId 对账，谁新听谁的。
+ * - mode/minutes/color/subtasks/repeat/listId 等详情字段 v2 起已同步；
+ *   自定义清单（TaskList）本身暂不同步，任务挂在不存在的清单 id 上时按收集箱兜底显示。
  * - 专注记录：只增不改。用「已上云 _id 集合」+「指纹(kind|startedAt|actualSec)」
  *   双重去重，失败的下次 syncNow 自动补传（天然离线 outbox）。
  *
  * 已知取舍（v1）：
  * - 两台设备首次互相合并时，各自的同题任务会各留一份（不同 clientId 无法可靠判定
  *   是同一条），手动删掉一份即可，删除会同步到云端和另一台设备。
- * - mode/minutes/color/subtasks 等纯本地展示字段不在云端模型里，不同步。
  */
 import { storage } from '@/utils/storage'
 import { http } from '@/api/http'
@@ -152,6 +153,14 @@ function taskToCloud(t: Task) {
     completed: t.completed,
     completedAt: t.completedAt,
     deleted: t.deleted,
+    // ---- 详情设置（v2 起同步）----
+    subtasks: t.subtasks,
+    mode: t.mode,
+    minutes: t.minutes,
+    color: t.color || undefined,
+    repeat: t.repeat,
+    listId: t.listId,
+    futureDate: t.futureDate,
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
   }
@@ -176,6 +185,13 @@ async function syncTasks(): Promise<TaskMaps> {
       completed?: boolean
       completedAt?: string | Date | null
       deleted?: boolean
+      subtasks?: { id: string; title: string; done: boolean }[]
+      mode?: string
+      minutes?: number
+      color?: string
+      repeat?: string
+      listId?: string
+      futureDate?: string
       createdAt?: string | Date
       updatedAt?: string | Date
     }[]
@@ -188,16 +204,21 @@ async function syncTasks(): Promise<TaskMaps> {
       maps.S2L[s._id] = s.clientId
     }
     const sUpd = s.updatedAt ? new Date(s.updatedAt).getTime() : 0
+    // 清单兜底：对端的自定义清单本机可能还没有，落不进任何列表视图的任务收进收集箱
+    const pullListId = s.listId || 'inbox'
+    const safeListId =
+      pullListId.startsWith('list_') && !taskStore.customLists.some(l => l.id === pullListId) ? 'inbox' : pullListId
     const local = taskStore.tasks.find(t => t._id === s.clientId)
     if (!local) {
       if (s.deleted) continue // 云端已删、本地没有：无需复活
       taskStore.tasks.push({
         _id: s.clientId,
-        listId: 'inbox',
+        listId: safeListId,
         title: s.title || '未命名',
         notes: s.notes || '',
-        mode: 'countdown',
-        minutes: 25,
+        mode: s.mode === 'countup' ? 'countup' : 'countdown',
+        minutes: s.minutes ?? 25,
+        color: s.color || undefined,
         tags: s.tags || [],
         priority: (s.priority ?? 0) as Task['priority'],
         sortOrder: s.sortOrder ?? 0,
@@ -206,9 +227,10 @@ async function syncTasks(): Promise<TaskMaps> {
         done: s.donePomodoros ?? 0,
         completed: !!s.completed,
         completedAt: s.completedAt ? new Date(s.completedAt).getTime() : undefined,
-        subtasks: [],
-        repeat: 'none',
+        subtasks: Array.isArray(s.subtasks) ? s.subtasks.map(x => ({ id: x.id, title: x.title, done: !!x.done })) : [],
+        repeat: (s.repeat as Task['repeat']) || 'none',
         deleted: !!s.deleted,
+        futureDate: s.futureDate,
         createdAt: s.createdAt ? new Date(s.createdAt).getTime() : Date.now(),
         updatedAt: sUpd || Date.now(),
       })
@@ -225,6 +247,16 @@ async function syncTasks(): Promise<TaskMaps> {
       local.completed = s.completed ?? local.completed
       local.completedAt = s.completedAt ? new Date(s.completedAt).getTime() : local.completedAt
       local.deleted = s.deleted ?? local.deleted
+      local.subtasks = Array.isArray(s.subtasks)
+        ? s.subtasks.map(x => ({ id: x.id, title: x.title, done: !!x.done }))
+        : local.subtasks
+      local.mode = s.mode === 'countup' || s.mode === 'countdown' ? s.mode : local.mode
+      local.minutes = s.minutes ?? local.minutes
+      local.color = s.color || local.color
+      local.repeat = (s.repeat as Task['repeat']) || local.repeat
+      local.listId =
+        safeListId.startsWith('list_') && !taskStore.customLists.some(l => l.id === safeListId) ? local.listId : safeListId
+      local.futureDate = s.futureDate ?? local.futureDate
       local.updatedAt = sUpd
     } else if ((local.updatedAt || 0) > sUpd) {
       toPush.push(local) // 本地较新 → 回推

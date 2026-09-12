@@ -45,6 +45,13 @@ taskRouter.post('/', auth(), async (req: Request, res: Response) => {
       completed: body.completed ?? false,
       completedAt: body.completedAt ? new Date(body.completedAt as number) : undefined,
       deleted: body.deleted ?? false,
+      subtasks: Array.isArray(body.subtasks) ? body.subtasks : [],
+      mode: body.mode === 'countup' ? 'countup' : 'countdown',
+      minutes: body.minutes ?? 25,
+      color: body.color || '',
+      repeat: body.repeat || 'none',
+      listId: body.listId || 'inbox',
+      futureDate: body.futureDate,
     })
   } else {
     // LWW：服务端保留较新的 updatedAt
@@ -65,6 +72,13 @@ taskRouter.post('/', auth(), async (req: Request, res: Response) => {
       completed: body.completed ?? task.completed,
       completedAt: body.completedAt ? new Date(body.completedAt as number) : task.completedAt,
       deleted: body.deleted ?? task.deleted,
+      subtasks: Array.isArray(body.subtasks) ? body.subtasks : (task.subtasks ?? []),
+      mode: body.mode ?? task.mode,
+      minutes: body.minutes ?? task.minutes,
+      color: body.color ?? task.color,
+      repeat: body.repeat ?? task.repeat,
+      listId: body.listId ?? task.listId,
+      futureDate: body.futureDate ?? task.futureDate,
     })
   }
   if (body.createdAt) task.createdAt = new Date(body.createdAt as number)
@@ -90,6 +104,7 @@ taskRouter.put('/:id', auth(), async (req: Request, res: Response) => {
   for (const key of [
     'title', 'notes', 'tags', 'priority', 'sortOrder', 'planDate',
     'estimatePomodoros', 'donePomodoros', 'completed', 'deleted',
+    'subtasks', 'mode', 'minutes', 'color', 'repeat', 'listId', 'futureDate',
   ]) {
     if (body[key] !== undefined) (task as unknown as { set: (k: string, v: unknown) => void }).set(key, body[key])
   }

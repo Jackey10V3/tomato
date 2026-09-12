@@ -14,6 +14,14 @@ const taskSchema = new Schema({
   completed: { type: Boolean, default: false },
   completedAt: { type: Date },
   deleted: { type: Boolean, default: false },
+  // ---- 详情设置（v2 起同步）----
+  subtasks: { type: [{ id: String, title: String, done: Boolean }], default: [] },
+  mode: { type: String, enum: ['countdown', 'countup'], default: 'countdown' },
+  minutes: { type: Number, default: 25 },
+  color: { type: String, default: '' },
+  repeat: { type: String, enum: ['none', 'daily', 'weekly'], default: 'none' },
+  listId: { type: String, default: 'inbox' },
+  futureDate: { type: String },
   createdAt: { type: Date, default: () => new Date() },
   updatedAt: { type: Date, default: () => new Date() },
 })
