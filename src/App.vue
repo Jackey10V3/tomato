@@ -186,19 +186,11 @@ page {
  *  3. 位移距离要小：列表项用 14rpx 的轻微下沉，块级卡片用 22rpx 的横向轻推，
  *     大距离滑入在反复切 tab 时会变成"弹幕"，非常吵。
  */
-.fade-row { animation: rowIn 0.35s ease-out both; }
-@keyframes rowIn {
-  /* 浅入浅出：纯透明度淡入，不做位移（左滑/上移都试过，用户反馈"突兀"）。
-     起点保留 0.25 而不是 0：缓存页重播万一慢半帧也只是轻微变暗，不会闪黑。 */
-  from { opacity: 0.25; }
-  to { opacity: 1; }
-}
-
-.slide-in-left { animation: slideInLeft 0.38s ease-out both; }
-@keyframes slideInLeft {
-  from { opacity: 0.25; }
-  to { opacity: 1; }
-}
+/* 用户最终决定：页面内容不做入场动画，直接显示（多轮尝试后仍嫌突兀）。
+   .fade-row / .slide-in-left 类保留（页面模板还在用），但不再绑定任何动画。
+   useEnterAnim 的重播逻辑对无动画元素是空操作，无需改动。 */
+.fade-row { }
+.slide-in-left { }
 
 /* ===================================================================
  * 统一页面骨架：待办 / 统计 / 我的 —— 三个 tab 页共用同一套布局逻辑
@@ -354,6 +346,10 @@ page {
   margin-left: auto;
   margin-right: auto;
 }
+/* 二级页（登录/外观/设置/记录等）宽屏兜底：内容列限宽居中，不再挤在一边 */
+.screen.is-wide .body { max-width: 920rpx; margin-left: auto; margin-right: auto; }
+.screen.is-wide .card { max-width: 860rpx; margin-left: auto; margin-right: auto; }
+
 .is-2col .t-flow > .t-card,
 .is-2col .t-flow > .total-card {
   /* 卡片默认 content-box，padding 不算在宽度里，两列会超出容器又被挤换行 */

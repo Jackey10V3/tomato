@@ -18,6 +18,8 @@ import { uuid } from '@/utils/uuid'
 import { dateKey } from '@/utils/date'
 import { useTaskStore } from '@/store/modules/task'
 import { useFocusStore } from '@/store/modules/focus'
+import { useSettingsStore } from '@/store/modules/settings'
+import { useAuthStore } from '@/store/modules/auth'
 import type { Task } from '@/types/task'
 import type { FocusRecord } from '@/types/focus'
 
@@ -62,12 +64,36 @@ export async function syncNow(reason = 'manual'): Promise<{ ok: boolean; msg: st
   try {
     await syncTasks()
     await syncFocusRecords()
+    await syncProfile()
     storage.set(K_LAST_SYNC, String(Date.now()))
     return { ok: true, msg: reason }
   } catch (e) {
     return { ok: false, msg: e instanceof Error ? e.message : String(e) }
   } finally {
     syncing = false
+  }
+}
+
+/* ---------------- 个人资料同步（昵称/头像） ---------------- */
+
+async function syncProfile(): Promise<void> {
+  const settings = useSettingsStore()
+  const authStore = useAuthStore()
+  // 先推本地资料，再拉云端最终态（云端为准，改动时会立即推）
+  try {
+    await http.put('/auth/me', { nickname: settings.s.nickname, avatar: settings.s.avatar }, { loading: false })
+  } catch {
+    /* 推送失败不影响拉取 */
+  }
+  try {
+    const me = await http.get<{ nickname?: string; avatar?: string }>('/auth/me')
+    if (me?.avatar && me.avatar !== settings.s.avatar) settings.update({ avatar: me.avatar })
+    if (me?.nickname) {
+      settings.update({ nickname: me.nickname })
+      authStore.rename(me.nickname)
+    }
+  } catch {
+    /* 离线时跳过 */
   }
 }
 
@@ -183,6 +209,7 @@ function localToCloud(r: FocusRecord) {
     r.result === 'manual' ? 'manual_stop' : r.result === 'giveup' ? 'give_up' : r.result === 'abandoned' ? 'app_killed' : undefined
   return {
     kind: r.kind === 'focus' ? 'focus' : 'break',
+    taskTitle: r.taskTitle || undefined,
     plannedSec: r.plannedSec,
     actualSec: r.actualSec,
     completed: r.result === 'completed' || r.result === 'manual',
@@ -193,6 +220,7 @@ function localToCloud(r: FocusRecord) {
 
 function serverToLocal(s: {
   kind?: string
+  taskTitle?: string
   phaseRound?: number
   plannedSec?: number
   actualSec?: number
@@ -209,6 +237,7 @@ function serverToLocal(s: {
     _id: uuid(),
     kind: s.kind === 'break' ? 'shortBreak' : 'focus',
     mode: 'countdown',
+    taskTitle: s.taskTitle || '',
     plannedSec: s.plannedSec || 0,
     actualSec: s.actualSec || 0,
     result: result as FocusRecord['result'],
@@ -229,6 +258,7 @@ async function syncFocusRecords(): Promise<void> {
   // 1) 拉取云端（分页，最多取 500 条）
   const pageData: {
     kind?: string
+    taskTitle?: string
     phaseRound?: number
     plannedSec?: number
     actualSec?: number

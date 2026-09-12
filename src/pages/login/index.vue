@@ -120,6 +120,9 @@ async function retryServer() {
 
 <style lang="scss" scoped>
 .card { background: var(--p-card, #fff); border-radius: 26rpx; margin: 20rpx 24rpx; padding: 30rpx; box-shadow: 0 8rpx 22rpx rgba(240, 100, 130, 0.07); }
+/* 平板/宽屏：卡片在剩余空间水平垂直居中，不再贴左上角 */
+.screen.is-wide { display: flex; flex-direction: column; min-height: 100vh; }
+.screen.is-wide .card { margin: auto; }
 .tabs { display: flex; background: var(--p-soft, #f6eef1); border-radius: 999rpx; padding: 5rpx; margin-bottom: 26rpx; }
 .tab { flex: 1; text-align: center; padding: 12rpx 0; border-radius: 999rpx; font-size: 26rpx; color: var(--p-sub, #999); &.on { background: var(--p-primary, #e53935); color: #fff; font-weight: 700; } }
 .ipt { background: var(--p-soft, #f7f4f5); border-radius: 16rpx; padding: 20rpx 24rpx; font-size: 28rpx; margin-bottom: 20rpx; color: var(--p-text, #333); }
