@@ -252,12 +252,17 @@ async function syncTasks(): Promise<TaskMaps> {
 const fp = (kind: string, startedAt: number, actualSec: number) => `${kind}|${Math.floor(startedAt / 1000)}|${actualSec}`
 
 function localToCloud(r: FocusRecord, maps: TaskMaps) {
+  const taskStore = useTaskStore()
+  // 映射断链兜底：另一台设备推的同名任务 clientId 不同，按标题找本地对应任务再查映射
+  const linked =
+    (r.taskId && taskStore.tasks.find(t => t._id === r.taskId)) ||
+    taskStore.tasks.find(t => !!r.taskTitle && t.title === r.taskTitle)
   const abandonedReason =
     r.result === 'manual' ? 'manual_stop' : r.result === 'giveup' ? 'give_up' : r.result === 'abandoned' ? 'app_killed' : undefined
   return {
     kind: r.kind === 'focus' ? 'focus' : 'break',
-    taskId: r.taskId ? maps.L2S[r.taskId] || undefined : undefined,
-    taskTitle: r.taskTitle || undefined,
+    taskId: linked ? maps.L2S[linked._id] || undefined : undefined,
+    taskTitle: r.taskTitle || (linked ? linked.title : undefined),
     plannedSec: r.plannedSec,
     actualSec: r.actualSec,
     completed: r.result === 'completed' || r.result === 'manual',
