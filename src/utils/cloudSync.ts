@@ -320,8 +320,8 @@ async function syncFocusRecords(maps: TaskMaps): Promise<void> {
     startedAt?: string | Date
     endedAt?: string | Date
   }[] = []
-  const pageSize = 200
-  for (let page = 1; page <= 5; page++) {
+  const pageSize = 100 // 服务端上限 100，请求再大也会被截到 100/页
+  for (let page = 1; page <= 20; page++) {
     const r = await http.get<{ list: typeof pageData; total: number }>(`/focus-records?page=${page}&pageSize=${pageSize}`)
     pageData.push(...(r.list || []))
     if (pageData.length >= (r.total || 0)) break
