@@ -1,0 +1,23 @@
+# Render 蓝图：一键部署番茄Todo 后端（免费层）
+# 使用：Render 控制台 → New → Blueprint → 选择本仓库 → 会读到本文件
+# MONGODB_URI 会在部署时提示填写（MongoDB Atlas 免费集群的连接串）
+services:
+  - type: web
+    name: tomato-server
+    runtime: node
+    rootDir: server
+    plan: free
+    # 显式带上 dev 依赖：tsx 在 devDependencies 里，是运行时启动器
+    buildCommand: npm ci --include=dev
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MONGODB_URI
+        sync: false            # 部署时手动填 Atlas 连接串
+      - key: JWT_SECRET
+        generateValue: true    # 自动生成强随机密钥
+      - key: TZ_OFFSET_MINUTES
+        value: "480"           # 东八区（与 App 统计口径一致）
+      - key: NODE_VERSION
+        value: "20"

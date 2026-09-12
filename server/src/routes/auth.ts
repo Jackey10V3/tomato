@@ -5,8 +5,13 @@ import { User, type UserDoc } from '../models/user'
 import { err, ok, JWT_SECRET } from '../config/env'
 import { json } from '../config/db'
 import { auth } from '../middleware/auth'
+import { rateLimit } from '../middleware/rateLimit'
 
 export const authRouter = Router()
+
+// 公网暴露的注册/登录加限流：同一 IP 5 分钟内最多 20 次，防暴力刷接口
+const authLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 20 })
+authRouter.use(authLimiter)
 
 function sign(user: UserDoc) {
   return jwt.sign({ uid: String(user._id), nickname: user.nickname }, JWT_SECRET, {
