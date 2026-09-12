@@ -68,6 +68,21 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   res.json(ok({ ...toSafe(user), token: sign(user) }))
 })
 
+// PUT /auth/me —— 更新个人资料（昵称/头像），资料同步用
+authRouter.put('/me', auth(), async (req: Request, res: Response) => {
+  const user = await User.findById(req.auth!.uid)
+  if (!user) {
+    res.status(404).json(err(404, '用户不存在'))
+    return
+  }
+  const { nickname, avatar } = (req.body || {}) as { nickname?: string; avatar?: string }
+  if (typeof nickname === 'string' && nickname.trim()) user.nickname = nickname.trim()
+  if (typeof avatar === 'string' && avatar) user.avatar = avatar
+  user.updatedAt = new Date()
+  await user.save()
+  res.json(ok(toSafe(user)))
+})
+
 // GET /auth/me
 authRouter.get('/me', auth(), async (req: Request, res: Response) => {
   const user = await User.findById(req.auth!.uid)

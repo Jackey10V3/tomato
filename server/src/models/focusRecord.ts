@@ -3,6 +3,7 @@ import mongoose, { Schema, type InferSchemaType } from 'mongoose'
 const focusRecordSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   taskId: { type: Schema.Types.ObjectId, ref: 'Task', default: null },
+  taskTitle: { type: String, default: '' },
   kind: { type: String, enum: ['focus', 'break'], required: true },
   phaseRound: { type: Number, default: 0 },
   plannedSec: { type: Number, default: 0 },

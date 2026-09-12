@@ -14,6 +14,7 @@ focusRouter.post('/', auth(), async (req: Request, res: Response) => {
   const body = (req.body || {}) as {
     kind?: 'focus' | 'break'
     taskId?: string | null
+    taskTitle?: string
     phaseRound?: number
     plannedSec?: number
     actualSec?: number
@@ -26,6 +27,7 @@ focusRouter.post('/', auth(), async (req: Request, res: Response) => {
   const doc = await FocusRecord.create({
     userId: uid,
     taskId: body.taskId ? new mongoose.Types.ObjectId(body.taskId) : undefined,
+    taskTitle: body.taskTitle || '',
     kind: body.kind || 'focus',
     phaseRound: body.phaseRound ?? 0,
     plannedSec: body.plannedSec ?? 0,
