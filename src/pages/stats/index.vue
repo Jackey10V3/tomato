@@ -73,7 +73,8 @@ const slices = computed<Slice[]>(() => {
   store.records.forEach(r => {
     // 有效专注的判定复用 store 的 countsInStats，避免"两套口径"
     if (!countsInStats(r) || !inPeriod(r, period.value)) return
-    const key = r.taskId || 'FREE'
+    // 分组键：任务 id 优先；云同步回来的记录可能只有名字（taskId 映射失败/待办已删），按名字分组
+    const key = r.taskId || (r.taskTitle ? 'T:' + r.taskTitle : 'FREE')
     const cur = map.get(key) || { name: '', minutes: 0 }
     const task = r.taskId ? taskStore.byId(r.taskId) : undefined
     cur.name = key === 'FREE' ? '自由专注' : task?.title || r.taskTitle || '未命名任务'

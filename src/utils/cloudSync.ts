@@ -24,6 +24,12 @@ import type { Task } from '@/types/task'
 import type { FocusRecord } from '@/types/focus'
 
 const K_PUSHED = 'cloud:pushed-record-ids'
+
+/** 本地任务 id <-> 云端任务 _id 的映射：专注记录上传/下载时保持任务关联 */
+interface TaskMaps {
+  L2S: Record<string, string>
+  S2L: Record<string, string>
+}
 const K_LAST_SYNC = 'cloud:last-sync-at'
 /** 计划同步的最小间隔（防抖；登录触发的可越过） */
 const MIN_GAP_MS = 60 * 1000
@@ -62,8 +68,8 @@ export async function syncNow(reason = 'manual'): Promise<{ ok: boolean; msg: st
   if (!cloudEnabled()) return { ok: false, msg: '未连接云端' }
   syncing = true
   try {
-    await syncTasks()
-    await syncFocusRecords()
+    const maps = await syncTasks()
+    await syncFocusRecords(maps)
     await syncProfile()
     storage.set(K_LAST_SYNC, String(Date.now()))
     return { ok: true, msg: reason }
@@ -118,11 +124,13 @@ function taskToCloud(t: Task) {
   }
 }
 
-async function syncTasks(): Promise<void> {
+async function syncTasks(): Promise<TaskMaps> {
   const taskStore = useTaskStore()
+  const maps: TaskMaps = { L2S: {}, S2L: {} }
   // 1) 拉取云端全量（v1 数据量 < 500，不做增量游标）
   const serverDocs = await http.get<
     {
+      _id?: string
       clientId: string
       title: string
       notes?: string
@@ -142,6 +150,10 @@ async function syncTasks(): Promise<void> {
 
   const toPush: Task[] = []
   for (const s of serverDocs) {
+    if (s._id) {
+      maps.L2S[s.clientId] = s._id
+      maps.S2L[s._id] = s.clientId
+    }
     const sUpd = s.updatedAt ? new Date(s.updatedAt).getTime() : 0
     const local = taskStore.tasks.find(t => t._id === s.clientId)
     if (!local) {
@@ -198,17 +210,19 @@ async function syncTasks(): Promise<void> {
     }
   }
   taskStore.persist()
+  return maps
 }
 
 /* ---------------- 专注记录同步 ---------------- */
 
 const fp = (kind: string, startedAt: number, actualSec: number) => `${kind}|${Math.floor(startedAt / 1000)}|${actualSec}`
 
-function localToCloud(r: FocusRecord) {
+function localToCloud(r: FocusRecord, maps: TaskMaps) {
   const abandonedReason =
     r.result === 'manual' ? 'manual_stop' : r.result === 'giveup' ? 'give_up' : r.result === 'abandoned' ? 'app_killed' : undefined
   return {
     kind: r.kind === 'focus' ? 'focus' : 'break',
+    taskId: r.taskId ? maps.L2S[r.taskId] || undefined : undefined,
     taskTitle: r.taskTitle || undefined,
     plannedSec: r.plannedSec,
     actualSec: r.actualSec,
@@ -218,23 +232,28 @@ function localToCloud(r: FocusRecord) {
   }
 }
 
-function serverToLocal(s: {
-  kind?: string
-  taskTitle?: string
-  phaseRound?: number
-  plannedSec?: number
-  actualSec?: number
-  completed?: boolean
-  abandonedReason?: string | null
-  startedAt?: string | Date
-  endedAt?: string | Date
-}): FocusRecord {
+function serverToLocal(
+  s: {
+    kind?: string
+    taskId?: string
+    taskTitle?: string
+    phaseRound?: number
+    plannedSec?: number
+    actualSec?: number
+    completed?: boolean
+    abandonedReason?: string | null
+    startedAt?: string | Date
+    endedAt?: string | Date
+  },
+  maps: TaskMaps,
+): FocusRecord {
   const startedAt = s.startedAt ? new Date(s.startedAt).getTime() : Date.now()
   const endedAt = s.endedAt ? new Date(s.endedAt).getTime() : startedAt + (s.actualSec || 0) * 1000
   const result =
     s.completed === false ? (s.abandonedReason === 'give_up' ? 'giveup' : s.abandonedReason === 'manual_stop' ? 'manual' : 'abandoned') : 'completed'
   return {
     _id: uuid(),
+    taskId: s.taskId ? maps.S2L[s.taskId] || undefined : undefined,
     kind: s.kind === 'break' ? 'shortBreak' : 'focus',
     mode: 'countdown',
     taskTitle: s.taskTitle || '',
@@ -251,7 +270,7 @@ function serverToLocal(s: {
   }
 }
 
-async function syncFocusRecords(): Promise<void> {
+async function syncFocusRecords(maps: TaskMaps): Promise<void> {
   const focusStore = useFocusStore()
   const pushed = pushedSet()
 
@@ -278,7 +297,7 @@ async function syncFocusRecords(): Promise<void> {
   for (const s of pageData) {
     const local = focusStore.records.find(r => fp(r.kind === 'focus' ? 'focus' : 'break', r.startedAt, r.actualSec) === fp(s.kind || 'focus', s.startedAt ? new Date(s.startedAt).getTime() : 0, s.actualSec || 0))
     if (local) continue // 两边都有
-    focusStore.records.push(serverToLocal(s))
+    focusStore.records.push(serverToLocal(s, maps))
     added++
   }
 
@@ -292,7 +311,7 @@ async function syncFocusRecords(): Promise<void> {
     }
     if (!localFps.has(fp(r.kind === 'focus' ? 'focus' : 'break', r.startedAt, r.actualSec))) continue
     try {
-      await http.post('/focus-records', localToCloud(r), { loading: false })
+      await http.post('/focus-records', localToCloud(r, maps), { loading: false })
       pushed.add(r._id)
     } catch {
       /* 失败不标记 → 下轮补传（天然 outbox） */
