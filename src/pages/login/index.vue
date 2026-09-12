@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/store/modules/settings'
 import { useChrome } from '@/composables/usePageChrome'
 import { useResponsive } from '@/composables/useResponsive'
 import { themeStyle, posterBg } from '@/utils/theme'
+import { scheduleSync } from '@/utils/cloudSync'
 
 const auth = useAuthStore()
 const settings = useSettingsStore()
@@ -42,6 +43,8 @@ async function submit() {
   const srv = await auth.syncServer(password.value)
   syncing.value = false
   if (srv.ok) {
+    // 连上云端后立刻做一次数据同步：本地数据上云 + 云端数据合并下来（换设备由此打通）
+    scheduleSync(300, true)
     uni.showToast({ title: '登录成功 · 已连接云端', icon: 'success' })
   } else {
     // 不阻断本地使用：离线也能用，只是云端功能不可用

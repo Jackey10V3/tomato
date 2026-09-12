@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onLaunch, onHide, onError, onUnhandledRejection } from '@dcloudio/uni-app'
+import { onLaunch, onShow, onHide, onError, onUnhandledRejection } from '@dcloudio/uni-app'
 import { ensureSchema } from '@/utils/migrate'
 import { unlockAudio } from '@/utils/audioEngine'
 import { logError } from '@/utils/debugLog'
 import { useFocusStore } from '@/store/modules/focus'
+import { scheduleSync } from '@/utils/cloudSync'
 
 // 全局错误记录（手机端白屏时可在「我的-诊断信息」查看）
 onError(e => {
@@ -20,6 +21,13 @@ onLaunch(() => {
   const r = ensureSchema()
   console.log('[番茄Todo] launched, schema', r.from, '→', r.to, r.migrated.length ? `migrated: ${r.migrated.join(',')}` : '')
   unlockAudio()
+  // 云端数据同步：每 3 分钟排一次队（有 token 才会真正同步，内部有节流）
+  setInterval(() => scheduleSync(0), 3 * 60 * 1000)
+})
+
+// 回到前台：尽快把云端数据拉平（后台期间的变更靠这里补）
+onShow(() => {
+  scheduleSync(800)
 })
 
 // 进后台/退出前把合并写入队列落盘，避免 250ms 窗口内的变更丢失
