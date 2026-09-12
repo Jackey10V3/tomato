@@ -1,6 +1,6 @@
 import express, { type NextFunction, type Request, type Response } from 'express'
 import cors from 'cors'
-import { err } from './config/env'
+import { err, ok } from './config/env'
 import { authRouter } from './routes/auth'
 import { taskRouter } from './routes/task'
 import { focusRouter } from './routes/focus'
@@ -12,6 +12,10 @@ export function createApp(): express.Express {
 
   app.use(cors())
   app.use(express.json({ limit: '1mb' }))
+
+  app.get('/', (_req, res) => {
+    res.json(ok({ name: '番茄Todo server', health: '/health', api: '/api/v1' }))
+  })
 
   app.get('/health', (_req, res) => {
     res.json({ code: 0, message: 'ok', data: { uptime: process.uptime() } })
