@@ -171,6 +171,10 @@ function setIdle() {
   st.status = 'idle'
   st.pausedElapsed = 0
   st.segStart = 0
+  // 关键：必须落盘。否则存盘快照仍停留在 running，
+  // 主动结束/放弃后退出 App，下次启动会被 restore() 当成"后台仍在计时"而复活计时器，
+  // 倒计时场景还会按自然完成再补记一条重复记录。
+  persist()
   syncPlatform()
   emit('idle')
 }
